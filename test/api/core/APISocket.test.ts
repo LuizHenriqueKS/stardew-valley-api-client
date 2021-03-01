@@ -1,11 +1,11 @@
 import APISocket from '@/src/api/core/APISocket';
-import getSettings from '@/src/api/util/getSettings';
+import getClientData from '../util/getClientData';
 
 it('should test readJSON', async () => {
-  const settings = getSettings();
-  const socket = new APISocket();
-  await socket.connect(settings.apiServerHost, settings.apiServerPort);
-  await socket.sendJSON({ id: 0, command: { name: 'Ping' } });
+  const clientData = getClientData();
+  const socket = new APISocket(clientData.host, clientData.port);
+  await socket.connect();
+  socket.sendJSON({ id: 0, command: { name: 'Ping' } });
   const response = await socket.readJSON();
   expect(response).toStrictEqual({
     id: 0,
@@ -16,10 +16,10 @@ it('should test readJSON', async () => {
 });
 
 it('should test javascript', async () => {
-  const settings = getSettings();
-  const socket = new APISocket();
-  await socket.connect(settings.apiServerHost, settings.apiServerPort);
-  await socket.sendJSON({
+  const clientData = getClientData();
+  const socket = new APISocket(clientData.host, clientData.port);
+  await socket.connect();
+  socket.sendJSON({
     id: 1,
     command: {
       name: 'RunJS',
@@ -38,9 +38,9 @@ it('should test javascript', async () => {
 });
 
 it('should test context javascript', async () => {
-  const settings = getSettings();
-  const socket = new APISocket();
-  await socket.connect(settings.apiServerHost, settings.apiServerPort);
+  const clientData = getClientData();
+  const socket = new APISocket(clientData.host, clientData.port);
+  await socket.connect();
   const request = {
     id: 3,
     command: {
@@ -50,8 +50,8 @@ it('should test context javascript', async () => {
       }
     }
   };
-  await socket.sendJSON(request);
-  await socket.sendJSON(request);
+  socket.sendJSON(request);
+  socket.sendJSON(request);
   const response = await socket.readJSON();
   expect(response).toStrictEqual({
     id: 3,

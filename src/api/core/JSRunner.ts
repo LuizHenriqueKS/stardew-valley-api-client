@@ -3,16 +3,18 @@ import JSResponseReader from './JSResponseReader';
 
 class JSRunner {
   client: APIClient;
-  #lastId: number;
+  lastRefId: number;
+  #lastRequestId: number;
 
   constructor(client: APIClient) {
     this.client = client;
-    this.#lastId = 0;
+    this.lastRefId = 0;
+    this.#lastRequestId = 0;
   }
 
-  async run(script: string): Promise<JSResponseReader> {
-    const id = this.#lastId++;
-    await this.client.socket.sendJSON({
+  run(script: string): JSResponseReader {
+    const id = this.#lastRequestId++;
+    this.client.socket.sendJSON({
       id,
       command: {
         name: 'RunJS',
@@ -22,6 +24,12 @@ class JSRunner {
       }
     });
     return new JSResponseReader(this.client, id);
+  }
+
+  async evaluate(script: string): Promise<any> {
+    const reader = await this.run(script);
+    const response = await reader.next();
+    return response.result;
   }
 }
 

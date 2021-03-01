@@ -1,6 +1,9 @@
 import APIClient from '../APIClient';
 import JSResponseReader from './JSResponseReader';
 import escapeValue from '../util/escapeValue';
+import TypeInfo from '../model/TypeInfo';
+import ResponseType from '../enums/ResponseType';
+import JSRemoteErrorException from '../exception/JSRemoteErrorException';
 
 class Ref {
   client: APIClient;
@@ -11,7 +14,7 @@ class Ref {
     this.expression = expression;
   }
 
-  run(script?: string): Promise<JSResponseReader> {
+  run(script?: string): JSResponseReader {
     if (script) {
       return this.client.jsRunner.run(script);
     } else {
@@ -20,12 +23,15 @@ class Ref {
   }
 
   async evaluate(script?: string): Promise<any> {
-    const reader = await this.run(script || `return ${this.expression};`);
-    const response = await reader.next();
-    return response.result;
+    const response = await this.run(script || `return ${this.expression};`).next();
+    if (response.type === ResponseType.RESPONSE) {
+      return response.result;
+    } else {
+      throw new JSRemoteErrorException(response.result);
+    }
   }
 
-  async invokeMethod(methodName: string, ...args: any[]): Promise<JSResponseReader> {
+  invokeMethod(methodName: string, ...args: any[]): JSResponseReader {
     let script = `return ${this.expression}.${methodName}(`;
     let first = true;
     for (const arg of args) {
@@ -40,18 +46,37 @@ class Ref {
   }
 
   async invokeMethodResult(methodName: string, ...args: any[]): Promise<any> {
-    const reader = await this.invokeMethod(methodName, args);
-    return reader.next();
+    const response = await this.invokeMethod(methodName, args).next();
+    if (response.type === ResponseType.RESPONSE) {
+      return response.result;
+    } else {
+      throw new JSRemoteErrorException(response.result);
+    }
   }
 
-  async sync(): Promise<Ref> {
-    const refName = await this.evaluate(`return engine.AddReference(${this.expression});`);
-    const newExpression = `engine.GetReference('${refName}')`;
+  sync(): Ref {
+    const refName = this.newRefName();
+    const script = `refs['${refName}'] = ${this.expression};`;
+    const newExpression = `refs['${refName}']`;
+    this.run(script);
     return new Ref(this.client, newExpression);
+  }
+
+  newRefName() {
+    return `ref#${this.client.jsRunner.lastRefId++}`;
+  }
+
+  async getTypeInfo(): Promise<TypeInfo> {
+    const script = `return ${this.expression}.GetType()`;
+    return await this.evaluate(script);
   }
 
   sub(expression: string): Ref {
     return new Ref(this.client, expression);
+  }
+
+  async getTypeName(): Promise<string> {
+    return await this.getPropertyValue('GetType().Name');
   }
 
   getChild(relativeExpression: string): Ref {
@@ -62,7 +87,7 @@ class Ref {
     return this.evaluate(`return ${this.expression}.${propertyName};`);
   }
 
-  setPropertyValue(propertyName: string, propertyValue: number | string | Ref): Promise<JSResponseReader> {
+  setPropertyValue(propertyName: string, propertyValue: number | boolean | string | Ref): JSResponseReader {
     const value = escapeValue(propertyValue);
     return this.run(`${this.expression}.${propertyName} = ${value}`);
   }

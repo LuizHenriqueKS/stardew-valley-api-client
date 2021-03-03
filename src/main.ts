@@ -1,20 +1,19 @@
 import APIClient from './api/APIClient';
 import rl from 'readline';
 import connectAPIClient from './api/util/connectAPIClient';
-import AutopilotMod from './mod/autopilot/AutopilotMod';
-import Keys from '@/src/api/enums/Keys';
-import AutoPath from './mod/auto-path/AutoPath';
+import CommandManager from './mod/command-manager/CommandManager';
+
+// import Keys from '@/src/api/enums/Keys';
 
 async function main() {
   const client = await connectAPIClient();
   console.log('Conectado.');
-  await new AutopilotMod(client).listen();
-  await new AutoPath(client).listen();
+  const commandManager = new CommandManager(client);
+  await commandManager.listen();
   readCommands(client);
-  testWithKeys(client);
 }
 
-async function readCommands(client: APIClient) {
+function readCommands(client: APIClient) {
   const reader = rl.createInterface(process.stdin, process.stdout);
   const loop = () => {
     reader.question('>', (command) => {
@@ -27,6 +26,7 @@ async function readCommands(client: APIClient) {
   loop();
 }
 
+/*
 async function testWithKeys(client: APIClient) {
   client.bridge.helper.events.input.buttonReleased.addListener(async (sender, args) => {
     if (args.button === Keys.VK_ENTER) {
@@ -46,6 +46,6 @@ async function testWithKeys(client: APIClient) {
       await p.move();
     }
   });
-}
+} */
 
 main().then();

@@ -1,6 +1,7 @@
 import APIClient from '../APIClient';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
+import ChatBox from './ChatBox';
 import Farmer from './Farmer';
 import InputState from './InputState';
 
@@ -11,6 +12,10 @@ class Game1 extends Proxy<Game1> {
 
   sub(ref: Ref): Game1 {
     return new Game1(ref);
+  }
+
+  getFarmerById(id: number): Farmer {
+    return new Farmer(this.ref.sub(`GameJS.GetFarmerById('${id}')`));
   }
 
   async pressUseToolButton(): Promise<boolean> {
@@ -43,6 +48,10 @@ class Game1 extends Proxy<Game1> {
 
   get input(): InputState {
     return new InputState(this.ref.getChild('input'));
+  }
+
+  get chatBox(): ChatBox {
+    return new ChatBox(this.ref.getChild('chatBox'));
   }
 }
 

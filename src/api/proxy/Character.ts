@@ -14,13 +14,21 @@ class Character extends Proxy<Character> {
 
   async findWalkPathTo(destination: TileLocation, faceDirection = Direction.DOWN): Promise<WalkPath> {
     const refName = this.ref.newRefName();
-    const script = `
+    /* const script = `
       const character = ${this.ref.expression};
       const gameLocation = Game1.getLocationFromName('${destination.location}');
       const endPoint = new Point(${Math.round(destination.x)}, ${Math.round(destination.y)});
       const faceDirection = ${faceDirection};
       const refName = '${refName}';
       return new PathFindController(character, gameLocation, endPoint, faceDirection).pathToEndPoint;
+    `; */
+    const script = `
+      const character = ${this.ref.expression};
+      const location = Game1.getLocationFromName('${destination.location}');
+      const startPoint = character.getTileLocationPoint();
+      const endPoint = new Point(${Math.round(destination.x)}, ${Math.round(destination.y)});
+      const refName = '${refName}';
+      return GameJS.FindPath(character, location, startPoint, endPoint, 10000);
     `;
     const path = await this.ref.evaluate(script);
     return new WalkPath(this, path);

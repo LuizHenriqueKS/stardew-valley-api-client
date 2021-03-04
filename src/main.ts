@@ -17,10 +17,16 @@ function readCommands(client: APIClient) {
   const reader = rl.createInterface(process.stdin, process.stdout);
   const loop = () => {
     reader.question('>', (command) => {
-      client.jsRunner.evaluate(`return ${command};`).then(result => {
-        console.log(result);
-        loop();
-      });
+      if (command.startsWith('>')) {
+        client.jsRunner.run(command.substr(1)).next().then(result => {
+          loop();
+        });
+      } else {
+        client.jsRunner.evaluate(`return ${command};`).then(result => {
+          console.log(result);
+          loop();
+        });
+      }
     });
   };
   loop();

@@ -35,9 +35,11 @@ class CommandManager {
     const commandArgs = parseCommandArgs(this, message);
     if (commandArgs.valid) {
       for (const command of this.#commands) {
-        if (command.canExecute(commandArgs)) {
-          command.execute(commandArgs).then();
-        }
+        command.canExecute(commandArgs).then(result => {
+          if (result) {
+            command.execute(commandArgs).then();
+          }
+        });
       }
     }
   }

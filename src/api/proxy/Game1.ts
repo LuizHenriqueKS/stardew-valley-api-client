@@ -1,4 +1,5 @@
 import APIClient from '../APIClient';
+import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 import ChatBox from './ChatBox';
@@ -12,6 +13,14 @@ class Game1 extends Proxy<Game1> {
 
   sub(ref: Ref): Game1 {
     return new Game1(ref);
+  }
+
+  async getUniqueIDForThisGame(): Promise<number> {
+    return await this.ref.getPropertyValue('uniqueIDForThisGame');
+  }
+
+  setUniqueIDForThisGame(uniqueIDForThisGame: number): JSResponseReader {
+    return this.ref.setPropertyValue('uniqueIDForThisGame', uniqueIDForThisGame);
   }
 
   getFarmerById(id: number): Farmer {

@@ -5,6 +5,7 @@ import AlreadyListeningException from './exception/AlreadyListeningException';
 import parseCommandArgs from './util/parseCommandArgs';
 import path from 'path';
 import fs from 'fs';
+import moment from 'moment';
 
 class CommandManager {
   logMessages: boolean;
@@ -25,10 +26,12 @@ class CommandManager {
     await this.loadCommands();
     await this.#client.bridge.helper.events.chat.chatMessageReceived.addListener((sender, args) => {
       if (this.logMessages && args.sourceFarmer !== 0) {
-        console.log('Mensagem recebida:', JSON.stringify(args));
+        const dateTime = moment().format('DD/MM/YYYY HH:mm:ss');
+        console.log(`[${dateTime}] ${args.sourceFarmerName}: ${args.message}`);
       }
       this.processMessage(args);
     });
+    this.#client.bridge.game1.chatBox.addInfoMessage('APIClient conectado');
   }
 
   processMessage(message: ChatMessageEvent) {
@@ -48,10 +51,12 @@ class CommandManager {
     const commandDir = path.join(__dirname, 'commands');
     const commandFiles = fs.readdirSync(commandDir);
     for (const commandFile of commandFiles) {
-      const commandFilePath = path.join(commandDir, commandFile);
-      const command = (await import(commandFilePath)).default;
-      this.#commands.push(command);
-      console.log('Comando carregado:', command.name);
+      if (commandFile.toLocaleLowerCase().endsWith('.ts')) {
+        const commandFilePath = path.join(commandDir, commandFile);
+        const command = (await import(commandFilePath)).default;
+        this.#commands.push(command);
+        console.log('Comando carregado:', command.name);
+      }
     }
   }
 

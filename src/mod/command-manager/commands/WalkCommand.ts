@@ -2,8 +2,8 @@ import Command from '../base/Command';
 import CommandArgs from '../base/CommandArgs';
 import defaultCanExecute from '../util/defaultCanExecute';
 
-class SaveCommand implements Command {
-  name: string = 'Save';
+class WalkCommand implements Command {
+  name: string = 'Walk';
 
   async canExecute(args: CommandArgs): Promise<boolean> {
     return defaultCanExecute(this, args);
@@ -23,4 +23,4 @@ class SaveCommand implements Command {
   }
 }
 
-export default new SaveCommand();
+export default new WalkCommand();

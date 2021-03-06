@@ -46,10 +46,11 @@ class Ref {
   }
 
   async invokeMethodResult(methodName: string, ...args: any[]): Promise<any> {
-    const response = await this.invokeMethod(methodName, args).next();
+    const response = await this.invokeMethod(methodName, ...args).next();
     if (response.type === ResponseType.RESPONSE) {
       return response.result;
     } else {
+      console.error(response.result.ScriptErrorDetails);
       throw new JSRemoteErrorException(response.result);
     }
   }

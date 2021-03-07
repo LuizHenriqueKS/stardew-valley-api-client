@@ -1,0 +1,47 @@
+import TerrainFeatureInfoLister from '@/src/api/lister/TerrainFeatureInfoLister';
+import Command from '../../base/Command';
+import CommandArgs from '../../base/CommandArgs';
+import defaultCanExecute from '../../util/defaultCanExecute';
+import defaultHandleException from '../../util/defaultHandleException';
+import defaultParseNameLocation from '../../util/defaultParseNameLocation';
+
+class WalkTerrainCommand implements Command {
+  name: string = 'Terrain';
+
+  async canExecute(args: CommandArgs): Promise<boolean> {
+    return defaultCanExecute(this, args);
+  }
+
+  async execute(args: CommandArgs): Promise<void> {
+    try {
+      await args.sendInfo('Contando itens...').next();
+      const location = await defaultParseNameLocation(args, 0);
+      const lister = new TerrainFeatureInfoLister(args.client);
+      lister.location = location;
+      lister.acceptTypeNames = args.commandArgs.length > 1 ? [args.commandArgs[1]] : [];
+      const result = await lister.list();
+      const items: any = {};
+      const itemsLocation: any = {};
+      for (const obj of result) {
+        const name = `${obj.typeName}`;
+        if (items[name]) {
+          items[name] += 1;
+          itemsLocation[name].push(obj.location);
+        } else {
+          items[name] = 1;
+          itemsLocation[name] = [obj.location];
+        }
+      }
+      for (const key of Object.keys(items)) {
+        const address = JSON.stringify(itemsLocation).split("'").join('');
+        args.sendInfo(`${key} [${address}]: ${items[key]}`);
+      }
+      args.sendInfo(`Total itens encontrados: ${result.length}`);
+      console.log(result);
+    } catch (e) {
+      await defaultHandleException(args, e);
+    }
+  }
+}
+
+export default new WalkTerrainCommand();

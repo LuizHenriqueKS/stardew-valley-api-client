@@ -1,3 +1,4 @@
+import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 
@@ -28,8 +29,8 @@ class InputState extends Proxy<InputState> {
     return await this.ref.getPropertyValue('GetMouseState().LeftButton');
   }
 
-  setLeftButtonPressed(LeftButtonPressed: boolean) {
-    this.ref.run(`GameJS.Input.SimulateLeftButton = ${LeftButtonPressed}`);
+  setLeftButtonPressed(LeftButtonPressed: boolean): JSResponseReader {
+    return this.ref.run(`GameJS.Input.SimulateLeftButton = ${LeftButtonPressed}`);
   }
 
   async pressRightButton() {

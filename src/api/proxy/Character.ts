@@ -7,23 +7,26 @@ import Position from '../model/Position';
 import TileLocation from '../model/TileLocation';
 import WalkingPathFinder from './WalkingPathFinder';
 import GameLocation from './GameLocation';
+import WalkingPathNotFoundException from '../exception/WalkingPathNotFoundException';
+import ActionCanceledException from '../exception/ActionCanceledException';
 
 class Character extends Proxy<Character> {
   sub(ref: Ref): Character {
     return new Character(ref);
   }
 
-  async findWalkingPathTo(endPoint: TileLocation, distance: number = 0, maxDirections = 10000): Promise<WalkingPath> {
-    const finder = new WalkingPathFinder(this.ref.sub('WalkingPathFinder'));
-    const startPoint = await this.getTileLocation();
-    const paths = await finder.find({
-      character: this,
-      startPoint: startPoint,
-      endPoint: endPoint,
-      distance: distance,
-      maxInteractions: maxDirections
+  async findWalkingPathTo(endPoint: TileLocation, distance: number = 0): Promise<WalkingPath> {
+    const finder = new WalkingPathFinder(this);
+    const pathResult = await finder.find({
+      endPoint,
+      distance
     });
-    return new WalkingPath(this, paths);
+    if (pathResult.finished && (!pathResult.data || pathResult.data.length === 0)) {
+      throw new WalkingPathNotFoundException();
+    } else if (pathResult.canceled) {
+      throw new ActionCanceledException();
+    }
+    return new WalkingPath(this, pathResult.data);
   }
 
   async listItems(): Promise<Item[]> {

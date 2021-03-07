@@ -12,7 +12,7 @@ function parseCommandArgs(manager: CommandManager, event: ChatMessageEvent): Com
     args.commandName = str.from('!').till(' ').toString();
     if (str.containsAny(' ')) {
       args.commandArgsText = str.from(' ').toString();
-      args.commandArgs = str.from(' ').split(' ').list().trim().asStringArray();
+      args.commandArgs = str.from(' ').toString().split(' ').filter(v => v !== '');
     } else {
       args.commandArgsText = '';
       args.commandArgs = [];

@@ -1,7 +1,10 @@
+import jsesc from 'jsesc';
 import JSResponseReader from '../core/JSResponseReader';
 import WalkingEvent from '../event/WalkingEvent';
+import ActionCanceledException from '../exception/ActionCanceledException';
 import TileLocation from '../model/TileLocation';
 import Character from './Character';
+import Game1 from './Game1';
 
 class WalkingPath {
   #path: TileLocation[];
@@ -29,6 +32,9 @@ class WalkingPath {
       evt = (await reader.next()).result;
       if (evt.finished) {
         this.#moving = false;
+      } else if (evt.canceled) {
+        this.#moving = false;
+        throw new ActionCanceledException();
       } else if (eachStep) {
         this.#moving = await eachStep(evt, this);
       }
@@ -43,8 +49,12 @@ class WalkingPath {
   }
 
   private startWalking(): JSResponseReader {
-    const path = this.#path.map(p => `${p.x}:${p.y}`).join(',');
-    const script = `GameJS.GetWalker(${this.#character.ref.expression}).Walk(request, '${path}')`;
+    const path = JSON.stringify(this.#path);
+    const escapedPath = jsesc(path);
+    const game1 = new Game1(this.#character.ref.client);
+    game1.setMousePosition(0, 0);
+    game1.setMouseCursorTransparency(0);
+    const script = `GameJS.GetWalker(${this.#character.ref.expression}).Walk(request, '${escapedPath}')`;
     return this.#character.ref.run(script);
   }
 

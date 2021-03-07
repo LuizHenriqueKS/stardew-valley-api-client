@@ -3,6 +3,7 @@ import TileLocation from '../model/TileLocation';
 
 class WalkingEvent {
   finished!: boolean;
+  canceled!: boolean;
   tileLocation!: TileLocation;
   position!: Position;
 }

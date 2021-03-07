@@ -1,0 +1,84 @@
+import Command from '../../base/Command';
+import CommandArgs from '../../base/CommandArgs';
+import defaultCanExecute from '../../util/defaultCanExecute';
+import defaultHandleException from '../../util/defaultHandleException';
+import TileLocation from '@/src/api/model/TileLocation';
+import defaultParseNameLocation from '../../util/defaultParseNameLocation';
+import { ZStr } from 'z-str';
+import ChestItemInfoLister from '@/src/api/lister/ChestItemInfoLister';
+import WalkingPathNotFoundException from '@/src/api/exception/WalkingPathNotFoundException';
+
+class WalkChestCommand implements Command {
+  name: string = 'Chest';
+
+  async canExecute(args: CommandArgs): Promise<boolean> {
+    return defaultCanExecute(this, args);
+  }
+
+  async execute(args: CommandArgs): Promise<void> {
+    try {
+      const location = await defaultParseNameLocation(args, 0);
+      const itemName = new ZStr(args.commandArgsText).from(' ').toString();
+      const lister = new ChestItemInfoLister(args.client);
+      lister.location = location;
+      lister.acceptNames = args.commandArgs.length > 1 ? [itemName] : [];
+      args.sendInfo('Localizando os itens...');
+      const objects = await lister.list();
+      let rerouting = false;
+      let finished = false;
+      for (const obj of objects) {
+        try {
+          args.sendInfo(rerouting ? 'Calculando rota do próximo item...' : 'Calculando rota...');
+          const endPoint = { location: obj.location, x: obj.x, y: obj.y };
+          const walkingPath = await args.player.findWalkingPathTo(endPoint, 1);
+          await walkingPath.walk();
+          finished = true;
+          break;
+        } catch (ex) {
+          rerouting = true;
+          if (!(ex instanceof WalkingPathNotFoundException)) {
+            throw ex;
+          }
+        }
+      }
+      if (objects.length === 0) {
+        args.sendError('Objeto não localizado');
+      } else if (finished) {
+        args.sendInfo('Chegou no destino');
+      } else {
+        args.sendError('Não foi possível encontrar uma rota');
+      }
+    } catch (e) {
+      await defaultHandleException(args, e);
+    }
+  }
+
+  private async walkingTo(args: CommandArgs, charName: string, reroute: boolean, endPoint: TileLocation) {
+    const it = this;
+    args.sendInfo(!reroute ? 'Calculando rota...' : 'Recalculando rota...');
+    console.log('Calculando rota para: ', endPoint);
+    const walkingPath = await args.player.findWalkingPathTo(endPoint, 1);
+    if (walkingPath.valid) {
+      args.sendInfo('Indo até o destino...');
+      walkingPath.walk().then(result => {
+        if (result.finished) {
+          args.client.bridge.game1.getCharacterFromName(charName).getTileLocation().then(charPos => {
+            const x = Math.abs(result.tileLocation.x - charPos.x);
+            const y = Math.abs(result.tileLocation.y - charPos.y);
+            if (x < 2 && y < 2) {
+              args.sendInfo('Chegou no destino');
+            } else {
+              it.walkingTo(args, charName, true, endPoint).then();
+            }
+          });
+        } else {
+          args.sendError('Rota cancelada');
+        }
+      });
+    } else {
+      args.sendError('Não foi possível montar uma rota');
+    }
+  }
+}
+
+export default new WalkChestCommand();

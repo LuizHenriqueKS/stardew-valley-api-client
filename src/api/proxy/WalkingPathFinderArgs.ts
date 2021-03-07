@@ -1,12 +1,9 @@
 import TileLocation from '../model/TileLocation';
-import Character from './Character';
 
-interface WalkingpathFinderArgs {
-  character?: Character;
-  startPoint: TileLocation;
+interface WalkingPathFinderArgs {
   endPoint: TileLocation;
   distance?: number;
   maxInteractions?: number;
 }
 
-export default WalkingpathFinderArgs;
+export default WalkingPathFinderArgs;

@@ -2,19 +2,43 @@ import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 import EscapedValue from '../model/EscapedValue';
 import TileLocation from '../model/TileLocation';
-import WalkingpathFinderArgs from './WalkingPathFinderArgs';
+import Character from './Character';
+import WalkingPathFinderArgs from './WalkingPathFinderArgs';
+import WalkingPathFinderResult from './WalkingPathFinderResult';
 
 class WalkingPathFinder extends Proxy<WalkingPathFinder> {
-  sub(ref: Ref): WalkingPathFinder {
-    return new WalkingPathFinder(ref);
+  #character: Character;
+  #activated: boolean;
+
+  constructor(character: Character) {
+    super(character.ref.sub(`GameJS.GetPathFinder(${character.ref.expression})`));
+    this.#character = character;
+    this.#activated = false;
   }
 
-  async find(args: WalkingpathFinderArgs): Promise<TileLocation[]> {
-    const localArgs: WalkingpathFinderArgs = { maxInteractions: 10000, ...args };
-    const startPoint = this.tileLocationToRefExpression(localArgs.startPoint);
+  sub(ref: Ref): WalkingPathFinder {
+    return new WalkingPathFinder(new Character(ref.getChild('Character')));
+  }
+
+  async find(args: WalkingPathFinderArgs): Promise<WalkingPathFinderResult> {
+    const localArgs: WalkingPathFinderArgs = { maxInteractions: 100, ...args };
     const endPoint = this.tileLocationToRefExpression(localArgs.endPoint);
-    const result = await this.ref.sub('GameJS').invokeMethodResult('FindWalkPath', localArgs.character, startPoint, endPoint, localArgs.distance, localArgs.maxInteractions);
-    return result;
+    const request = new EscapedValue('request');
+    const reader = this.ref.invokeMethod('Find', request, endPoint, localArgs.distance, localArgs.maxInteractions);
+    this.#activated = true;
+    while (this.#activated) {
+      const response = await reader.next();
+      const result: WalkingPathFinderResult = response.result;
+      if (result.finished || result.canceled) {
+        return result;
+      }
+    }
+    return { finished: false, canceled: true, data: [] };
+  }
+
+  stop() {
+    const script = `${this.ref.expression}.Stop(request)`;
+    return this.#character.ref.run(script);
   }
 
   private tileLocationToRefExpression(tileLocation: TileLocation): EscapedValue {

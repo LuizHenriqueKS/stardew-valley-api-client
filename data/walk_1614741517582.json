@@ -1,0 +1,27 @@
+{
+  "fazenda": {
+    "x": 69,
+    "y": 18,
+    "location": "Farm"
+  },
+  "casa": {
+    "x": 7,
+    "y": 9,
+    "location": "FarmHouse"
+  },
+  "pesca": {
+    "x": 11,
+    "y": 28,
+    "location": "Beach"
+  },
+  "pescador": {
+    "x": 5,
+    "y": 6,
+    "location": "FishShop"
+  },
+  "pesca_em_casa": {
+    "x": 38,
+    "y": 48,
+    "location": "Farm"
+  }
+}

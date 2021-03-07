@@ -6,6 +6,8 @@ import parseCommandArgs from './util/parseCommandArgs';
 import path from 'path';
 import fs from 'fs';
 import moment from 'moment';
+import Keys from '@/src/api/enums/Keys';
+import JSResponseReader from '@/src/api/core/JSResponseReader';
 
 class CommandManager {
   logMessages: boolean;
@@ -31,6 +33,17 @@ class CommandManager {
       }
       this.processMessage(args);
     });
+    await this.#client.bridge.helper.events.input.buttonReleased.addListener((Sender, args) => {
+      if (args.button === Keys.VK_Q) {
+        const character = this.#client.bridge.game1.player;
+        this.#client.jsRunner.run(`GameJS.GetWalker(${character.ref.expression}).Stop(request)`);
+        this.#client.jsRunner.run(`GameJS.GetPathFinder(${character.ref.expression}).Stop(request)`);
+        this.#client.jsRunner.run(`GameJS.GetFisher(${character.ref.expression}).Stop(request)`);
+        this.#client.bridge.game1.input.setLeftButtonPressed(false);
+        this.#client.bridge.game1.input.setRightButtonPressed(false);
+        this.sendInfo('Ação atual cancelada');
+      }
+    });
     this.#client.bridge.game1.chatBox.addInfoMessage('APIClient conectado');
   }
 
@@ -45,6 +58,18 @@ class CommandManager {
         });
       }
     }
+  }
+
+  sendInfo(message: string): JSResponseReader {
+    const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
+    console.log(`[${datetime}] ApiBot: ${message}`);
+    return this.client.bridge.game1.chatBox.addInfoMessage(message);
+  }
+
+  sendError(message: string): JSResponseReader {
+    const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
+    console.error(`[${datetime}] ApiBot: ${message}`);
+    return this.client.bridge.game1.chatBox.addErrorMessage(message);
   }
 
   private async loadCommands() {

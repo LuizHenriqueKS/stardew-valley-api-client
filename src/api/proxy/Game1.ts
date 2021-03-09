@@ -2,7 +2,6 @@ import APIClient from '../APIClient';
 import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
-import Vector2 from '../model/Vector2';
 import Character from './Character';
 import ChatBox from './ChatBox';
 import Farmer from './Farmer';
@@ -58,26 +57,12 @@ class Game1 extends Proxy<Game1> {
     this.ref.setPropertyValue('mouseCursorTransparency', mouseCursorTransparency);
   }
 
-  async getMousePosition(): Promise<Vector2> {
-    const val = await this.ref.invokeMethodResult('getMousePosition');
-    const xy = val.split(',').map((str: string) => parseInt(str.trim()));
-    return { x: xy[0], y: xy[1] };
-  }
-
-  setMousePosition(x: number, y: number): void {
-    this.ref.invokeMethod('setMousePosition', x, y);
-  }
-
-  setMousePositionAtTile(x: number, y: number): void {
-    this.ref.sub('GameJS').invokeMethod('SetMousePositionAtTile', x, y);
-  }
-
   get player(): Farmer {
     return new Farmer(this.ref.getChild('player'));
   }
 
   get input(): InputState {
-    return new InputState(this.ref.getChild('input'));
+    return new InputState(this.ref.sub('GameJS.Input'));
   }
 
   get chatBox(): ChatBox {

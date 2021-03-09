@@ -4,7 +4,9 @@ import FullInventoryException from '../exception/FullInventoryException';
 import InsufficientStaminaException from '../exception/InsufficientStaminaException';
 import InvalidArgumentsException from '../exception/InvalidArgumentsException';
 import ItemNotFoundException from '../exception/ItemNotFoundException';
+
 import ToolNotFoundException from '../exception/ToolNotFoundException';
+import WaterNotFoundException from '../exception/WaterNotFoundException';
 
 async function defaultHandleException(args: CommandArgs, e: any, logUnknownException: boolean = true): Promise<boolean> {
   if (e instanceof InvalidArgumentsException) {
@@ -19,6 +21,8 @@ async function defaultHandleException(args: CommandArgs, e: any, logUnknownExcep
     args.sendError(`Item não localizado: ${e.name}`);
   } else if (e instanceof ToolNotFoundException) {
     args.sendError(`Item não localizado: ${e.name}`);
+  } else if (e instanceof WaterNotFoundException) {
+    args.sendError('Sem água');
   } else if (logUnknownException) {
     console.error(e);
     args.sendError('Erro desconhecido');

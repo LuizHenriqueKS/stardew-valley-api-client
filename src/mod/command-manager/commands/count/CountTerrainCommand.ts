@@ -1,4 +1,4 @@
-import TerrainFeatureInfoLister from '@/src/api/lister/TerrainFeatureInfoLister';
+import TerrainFeatureInfoDao from '@/src/api/dao/TerrainFeatureInfoDao';
 import Command from '../../base/Command';
 import CommandArgs from '../../base/CommandArgs';
 import defaultCanExecute from '../../util/defaultCanExecute';
@@ -16,7 +16,7 @@ class WalkTerrainCommand implements Command {
     try {
       await args.sendInfo('Contando itens...').next();
       const location = await defaultParseNameLocation(args, 0);
-      const lister = new TerrainFeatureInfoLister(args.client);
+      const lister = new TerrainFeatureInfoDao(args.client);
       lister.location = location;
       lister.acceptTypeNames = args.commandArgs.length > 1 ? [args.commandArgs[1]] : [];
       const result = await lister.list();
@@ -26,15 +26,16 @@ class WalkTerrainCommand implements Command {
         const name = `${obj.typeName}`;
         if (items[name]) {
           items[name] += 1;
-          itemsLocation[name].push(obj.location);
+          itemsLocation[name][obj.location] = true;
         } else {
           items[name] = 1;
-          itemsLocation[name] = [obj.location];
+          itemsLocation[name] = {};
+          itemsLocation[name][obj.location] = true;
         }
       }
       for (const key of Object.keys(items)) {
-        const address = JSON.stringify(itemsLocation).split("'").join('');
-        args.sendInfo(`${key} [${address}]: ${items[key]}`);
+        const address = JSON.stringify(Object.keys(itemsLocation[key])).split('"').join('');
+        args.sendInfo(`${key} ${address}: ${items[key]}`);
       }
       args.sendInfo(`Total itens encontrados: ${result.length}`);
       console.log(result);

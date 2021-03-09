@@ -9,6 +9,7 @@ import WalkingPathFinder from './WalkingPathFinder';
 import GameLocation from './GameLocation';
 import WalkingPathNotFoundException from '../exception/WalkingPathNotFoundException';
 import ActionCanceledException from '../exception/ActionCanceledException';
+import ItemInfo from '../model/ItemInfo';
 
 class Character extends Proxy<Character> {
   sub(ref: Ref): Character {
@@ -38,6 +39,22 @@ class Character extends Proxy<Character> {
     return result;
   }
 
+  async listItemsInfos(): Promise<ItemInfo[]> {
+    const script = `
+      const result = [];
+      let index = 0;
+      for (const item of ${this.ref.expression}.items){
+        if (item) {
+          result.push({name: item.Name, displayName: item.DisplayName, index});
+        }
+        index++;
+      }
+      return result;
+    `;
+    const response = await this.ref.client.jsRunner.run(script).next();
+    return response.result;
+  }
+
   async getCentralizeToolTile(): Promise<boolean> {
     return await this.ref.getPropertyValue('CentralizeToolTile');
   }
@@ -64,6 +81,32 @@ class Character extends Proxy<Character> {
     const position = `${this.ref.expression}.GetGrabTile()`;
     const location = `${this.ref.expression}.currentLocation.Name`;
     const values = await this.ref.evaluate(`return { x: ${position}.X, y: ${position}.Y, location: ${location} };`);
+    return values;
+  }
+
+  async nextPositionTile(): Promise<TileLocation> {
+    const script = `
+      const direction = ${this.ref.expression}.FacingDirection;
+      const position = ${this.ref.expression}.getTileLocation();
+      let x = 0;
+      let y = 0;
+      switch (direction){
+        case 0:
+          y--;
+          break;
+        case 1:
+          x++;
+          break;
+        case 2:
+          y++;
+          break;
+        case 3:
+          x--;
+          break;
+      }
+      return {x: x+position.X, y: y+position.Y, location: ${this.ref.expression}.currentLocation.Name, direction: direction};
+    `;
+    const values = await this.ref.evaluate(script);
     return values;
   }
 

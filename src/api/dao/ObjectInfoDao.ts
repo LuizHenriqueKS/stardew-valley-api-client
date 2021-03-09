@@ -1,7 +1,8 @@
 import APIClient from '../APIClient';
 import ObjectInfo from '../model/ObjectInfo';
+import TileLocation from '../model/TileLocation';
 
-class ObjectInfoLister {
+class ObjectInfoDao {
   #client: APIClient;
   location: string | undefined;
   acceptNames: string[];
@@ -43,6 +44,23 @@ class ObjectInfoLister {
     return result;
   }
 
+  async get(tileLocation: TileLocation): Promise<ObjectInfo | undefined> {
+    const script = `
+        const location = '${tileLocation.location}';
+        const obj = GameJS.GetObjectAtTile(location, ${tileLocation.x}, ${tileLocation.y});
+        
+        if (obj && obj.Name){
+          const model = { location: location.Name, x: obj.TileLocation.X, y: obj.TileLocation.Y, name: obj.Name, displayName: obj.DisplayName, edibility: obj.Edibility, type: obj.Type, category: obj.Category };
+          return model;
+        } else {
+          return {};
+        }
+
+      `;
+    const result: ObjectInfo = await this.#client.jsRunner.evaluate(script);
+    return result.name ? result : undefined;
+  }
+
   private getLocationListScript(): string {
     if (this.location && this.location.toLocaleLowerCase() === 'all') {
       return 'Game1.locations';
@@ -54,4 +72,4 @@ class ObjectInfoLister {
   }
 }
 
-export default ObjectInfoLister;
+export default ObjectInfoDao;

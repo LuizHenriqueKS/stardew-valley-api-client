@@ -1,9 +1,8 @@
-import ObjectInfoLister from '@/src/api/lister/ObjectInfoLister';
 import Command from '../../base/Command';
 import CommandArgs from '../../base/CommandArgs';
 import defaultCanExecute from '../../util/defaultCanExecute';
 import defaultHandleException from '../../util/defaultHandleException';
-import defaultParseNameLocation from '../../util/defaultParseNameLocation';
+import listGrabbableObjects from '../../util/listGrabbableObject';
 
 class WalkGrabCommand implements Command {
   name: string = 'Grab';
@@ -15,12 +14,7 @@ class WalkGrabCommand implements Command {
   async execute(args: CommandArgs): Promise<void> {
     try {
       await args.sendInfo('Contando itens coletáveis...').next();
-      const location = await defaultParseNameLocation(args, 0);
-      const lister = new ObjectInfoLister(args.client);
-      lister.location = location;
-      lister.rejectNames = ['Weeds', 'Twig', 'Stone'];
-      lister.rejectTypes = ['Crafting'];
-      const result = await lister.list();
+      const result = await listGrabbableObjects(args, 0);
       const items: any = {};
       const itemsLocation: any = {};
       for (const obj of result) {

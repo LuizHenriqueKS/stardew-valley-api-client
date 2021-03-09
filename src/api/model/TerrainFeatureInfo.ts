@@ -4,6 +4,8 @@ interface TerrainFeatureInfo {
   x: number;
   y: number;
   location: string;
+  watered: boolean;
+  health: number;
 
 }
 

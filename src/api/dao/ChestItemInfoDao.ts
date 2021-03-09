@@ -1,7 +1,7 @@
 import APIClient from '../APIClient';
 import ChestItemInfo from '../model/ChestItemInfo';
 
-class ChestItemInfoLister {
+class ChestItemInfoDao {
   #client: APIClient;
   location: string | undefined;
   acceptNames: string[];
@@ -56,4 +56,4 @@ class ChestItemInfoLister {
   }
 }
 
-export default ChestItemInfoLister;
+export default ChestItemInfoDao;

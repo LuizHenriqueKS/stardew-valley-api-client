@@ -1,4 +1,4 @@
-import ObjectInfoLister from '@/src/api/lister/ObjectInfoLister';
+import ObjectInfoDao from '@/src/api/dao/ObjectInfoDao';
 import Command from '../../base/Command';
 import CommandArgs from '../../base/CommandArgs';
 import defaultCanExecute from '../../util/defaultCanExecute';
@@ -16,7 +16,7 @@ class CountObjCommand implements Command {
     try {
       await args.sendInfo('Contando objetos...').next();
       const location = await defaultParseNameLocation(args, 0);
-      const lister = new ObjectInfoLister(args.client);
+      const lister = new ObjectInfoDao(args.client);
       lister.location = location;
       lister.acceptNames = args.commandArgs.length > 1 ? [args.commandArgs[1]] : [];
       const result = await lister.list();
@@ -26,15 +26,16 @@ class CountObjCommand implements Command {
         const name = `${obj.displayName}(${obj.name})`;
         if (items[name]) {
           items[name] += 1;
-          itemsLocation[name].push(obj.location);
+          itemsLocation[name][obj.location] = true;
         } else {
           items[name] = 1;
-          itemsLocation[name] = [obj.location];
+          itemsLocation[name] = [];
+          itemsLocation[name][obj.location] = true;
         }
       }
       for (const key of Object.keys(items)) {
-        const address = JSON.stringify(itemsLocation).split("'").join('');
-        args.sendInfo(`${key} [${address}]: ${items[key]}`);
+        const address = JSON.stringify(Object.keys(itemsLocation[key])).split('"').join('');
+        args.sendInfo(`${key} ${address}: ${items[key]}`);
       }
       args.sendInfo(`Total objetos encontrados: ${result.length}`);
       console.log(result);

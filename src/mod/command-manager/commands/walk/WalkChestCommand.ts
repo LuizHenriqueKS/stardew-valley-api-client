@@ -5,7 +5,7 @@ import defaultHandleException from '../../util/defaultHandleException';
 import TileLocation from '@/src/api/model/TileLocation';
 import defaultParseNameLocation from '../../util/defaultParseNameLocation';
 import { ZStr } from 'z-str';
-import ChestItemInfoLister from '@/src/api/lister/ChestItemInfoLister';
+import ChestItemInfoDao from '@/src/api/dao/ChestItemInfoDao';
 import WalkingPathNotFoundException from '@/src/api/exception/WalkingPathNotFoundException';
 
 class WalkChestCommand implements Command {
@@ -19,7 +19,7 @@ class WalkChestCommand implements Command {
     try {
       const location = await defaultParseNameLocation(args, 0);
       const itemName = new ZStr(args.commandArgsText).from(' ').toString();
-      const lister = new ChestItemInfoLister(args.client);
+      const lister = new ChestItemInfoDao(args.client);
       lister.location = location;
       lister.acceptNames = args.commandArgs.length > 1 ? [itemName] : [];
       args.sendInfo('Localizando os itens...');

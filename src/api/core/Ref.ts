@@ -85,7 +85,8 @@ class Ref {
   }
 
   getPropertyValue(propertyName: string): Promise<any> {
-    return this.evaluate(`return ${this.expression}.${propertyName};`);
+    const script = `return ${this.expression}.${propertyName};`;
+    return this.evaluate(script);
   }
 
   setPropertyValue(propertyName: string, propertyValue: number | boolean | string | Ref): JSResponseReader {

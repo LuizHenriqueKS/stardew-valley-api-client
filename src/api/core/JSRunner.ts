@@ -27,7 +27,7 @@ class JSRunner {
   }
 
   async evaluate(script: string): Promise<any> {
-    const reader = await this.run(script);
+    const reader = this.run(script);
     const response = await reader.next();
     return response.result;
   }

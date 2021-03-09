@@ -24,23 +24,27 @@ class WalkingPath {
   }
 
   async walk(eachStep?: (evt: WalkingEvent, path: WalkingPath) => Promise<boolean>): Promise<WalkingEvent> {
-    this.#moving = true;
-    this.#finished = false;
-    const reader = this.startWalking();
-    let evt: WalkingEvent;
-    do {
-      evt = (await reader.next()).result;
-      if (evt.finished) {
-        this.#moving = false;
-      } else if (evt.canceled) {
-        this.#moving = false;
-        throw new ActionCanceledException();
-      } else if (eachStep) {
-        this.#moving = await eachStep(evt, this);
-      }
-    } while (this.#moving);
-    this.#finished = evt.finished;
-    return evt;
+    try {
+      this.#moving = true;
+      this.#finished = false;
+      const reader = this.startWalking();
+      let evt: WalkingEvent;
+      do {
+        evt = (await reader.next()).result;
+        if (evt.finished) {
+          this.#moving = false;
+        } else if (evt.canceled) {
+          this.#moving = false;
+          throw new ActionCanceledException();
+        } else if (eachStep) {
+          this.#moving = await eachStep(evt, this);
+        }
+      } while (this.#moving);
+      this.#finished = evt.finished;
+      return evt;
+    } finally {
+      this.getGame1().input.disableSimulations();
+    }
   }
 
   stop() {
@@ -51,11 +55,13 @@ class WalkingPath {
   private startWalking(): JSResponseReader {
     const path = JSON.stringify(this.#path);
     const escapedPath = jsesc(path);
-    const game1 = new Game1(this.#character.ref.client);
-    game1.setMousePosition(0, 0);
-    game1.setMouseCursorTransparency(0);
     const script = `GameJS.GetWalker(${this.#character.ref.expression}).Walk(request, '${escapedPath}')`;
     return this.#character.ref.run(script);
+  }
+
+  private getGame1(): Game1 {
+    const game1 = new Game1(this.#character.ref.client);
+    return game1;
   }
 
   private parseTileLocation(it: any | TileLocation): TileLocation {

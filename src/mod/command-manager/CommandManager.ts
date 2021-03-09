@@ -8,6 +8,7 @@ import fs from 'fs';
 import moment from 'moment';
 import Keys from '@/src/api/enums/Keys';
 import JSResponseReader from '@/src/api/core/JSResponseReader';
+import autoCommand from './commands/AutoCommand';
 
 class CommandManager {
   logMessages: boolean;
@@ -38,10 +39,12 @@ class CommandManager {
         const character = this.#client.bridge.game1.player;
         this.#client.jsRunner.run(`GameJS.GetWalker(${character.ref.expression}).Stop(request)`);
         this.#client.jsRunner.run(`GameJS.GetPathFinder(${character.ref.expression}).Stop(request)`);
-        this.#client.jsRunner.run(`GameJS.GetFisher(${character.ref.expression}).Stop(request)`);
-        this.#client.bridge.game1.input.setLeftButtonPressed(false);
-        this.#client.bridge.game1.input.setRightButtonPressed(false);
+        this.#client.jsRunner.run(`GameJS.GetFisher(${character.ref.expression}).Stop()`);
+        this.#client.bridge.game1.input.disableSimulations();
+        autoCommand.canceled = true;
         this.sendInfo('Ação atual cancelada');
+      } else if (args.button === Keys.VK_R) {
+        this.#client.bridge.game1.input.pressRightButton().then();
       }
     });
     this.#client.bridge.game1.chatBox.addInfoMessage('APIClient conectado');

@@ -5,7 +5,7 @@ import defaultHandleException from '../../util/defaultHandleException';
 import TileLocation from '@/src/api/model/TileLocation';
 import defaultParseNameLocation from '../../util/defaultParseNameLocation';
 import { ZStr } from 'z-str';
-import ObjectInfoLister from '@/src/api/lister/ObjectInfoLister';
+import ObjectInfoDao from '@/src/api/dao/ObjectInfoDao';
 import WalkingPathNotFoundException from '@/src/api/exception/WalkingPathNotFoundException';
 
 class WalkObjCommand implements Command {
@@ -19,7 +19,7 @@ class WalkObjCommand implements Command {
     try {
       const location = await defaultParseNameLocation(args, 0);
       const objName = new ZStr(args.commandArgsText).from(' ').toString();
-      const objLister = new ObjectInfoLister(args.client);
+      const objLister = new ObjectInfoDao(args.client);
       objLister.location = location;
       objLister.acceptNames = [objName];
       args.sendInfo('Localizando os objetos...');

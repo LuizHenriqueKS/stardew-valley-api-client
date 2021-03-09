@@ -1,4 +1,4 @@
-import ChestItemInfoLister from '@/src/api/lister/ChestItemInfoLister';
+import ChestItemInfoDao from '@/src/api/dao/ChestItemInfoDao';
 import Command from '../../base/Command';
 import CommandArgs from '../../base/CommandArgs';
 import defaultCanExecute from '../../util/defaultCanExecute';
@@ -16,7 +16,7 @@ class CountChestCommand implements Command {
     try {
       await args.sendInfo('Contando itens de baú...').next();
       const location = await defaultParseNameLocation(args, 0);
-      const lister = new ChestItemInfoLister(args.client);
+      const lister = new ChestItemInfoDao(args.client);
       lister.location = location;
       lister.acceptNames = args.commandArgs.length > 1 ? [args.commandArgs[1]] : [];
       const result = await lister.list();

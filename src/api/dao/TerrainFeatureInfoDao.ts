@@ -1,7 +1,8 @@
 import APIClient from '../APIClient';
 import TerrainFeatureInfo from '../model/TerrainFeatureInfo';
+import TileLocation from '../model/TileLocation';
 
-class TerrainFeatureInfoLister {
+class TerrainFeatureInfoDao {
   #client: APIClient;
   location: string | undefined;
   acceptTypeNames: string[];
@@ -21,7 +22,7 @@ class TerrainFeatureInfoLister {
             if ( acceptTypeNames.length !== 0 && !acceptTypeNames.includes(ter.GetType().Name) ){
               continue;
             }
-            const model = { location: location.Name, x: ter.currentTileLocation.X, y: ter.currentTileLocation.Y, typeName: ter.GetType().Name };
+            const model = { location: location.Name, x: ter.currentTileLocation.X, y: ter.currentTileLocation.Y, typeName: ter.GetType().Name, watered: ter.state == 1 };
             result.push(model);
           }
         }
@@ -29,6 +30,31 @@ class TerrainFeatureInfoLister {
       `;
     const result = await this.#client.jsRunner.evaluate(script);
     return result;
+  }
+
+  async get(tileLocation: TileLocation): Promise<TerrainFeatureInfo> {
+    const script = `
+        const location = '${tileLocation.location}';
+        const ter = GameJS.GetTerrainFeatureAtTile(location, ${tileLocation.x}, ${tileLocation.y});
+        
+        if (ter){
+          const health = GameJS.OptValue(ter, 'health');
+          const model = { 
+            location: location.Name, 
+            x: ter.currentTileLocation.X, y: 
+            ter.currentTileLocation.Y, 
+            typeName: ter.GetType().Name, 
+            watered: ter.state == 1, 
+            health: health?health:undefined
+          };
+          return model;
+        } else {
+          return {};
+        }
+      `;
+    const result = await this.#client.jsRunner.evaluate(script);
+    result.health = Array.isArray(result.health) ? result.health[0] : undefined;
+    return result.typeName ? result : undefined;
   }
 
   private getLocationListScript(): string {
@@ -42,4 +68,4 @@ class TerrainFeatureInfoLister {
   }
 }
 
-export default TerrainFeatureInfoLister;
+export default TerrainFeatureInfoDao;

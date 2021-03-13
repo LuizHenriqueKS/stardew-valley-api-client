@@ -32,6 +32,8 @@ class WalkPosCommand implements Command {
       }
     } catch (e) {
       await defaultHandleException(args, e);
+    } finally {
+      await args.player.freeInputs();
     }
   }
 

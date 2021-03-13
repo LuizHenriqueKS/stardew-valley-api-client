@@ -7,14 +7,11 @@ class Tool extends Item {
   }
 
   async getWaterLeft(): Promise<number> {
-    const script = `
-      return ${this.ref.expression}.GetType().GetProperty('WaterLeft').GetValue(${this.ref.expression});
-    `;
-    return await this.ref.evaluate(script);
+    return await this.ref.optValue('WaterLeft');
   }
 
   async getFishCaught(): Promise<boolean> {
-    return await this.ref.evaluate(`return GameJS.OptValue(${this.ref.expression}, 'fishCaught');`);
+    return await this.ref.optValue('fishCaught');
   }
 }
 

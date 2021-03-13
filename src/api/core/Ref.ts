@@ -31,6 +31,15 @@ class Ref {
     }
   }
 
+  async optValue(name: string, ...args: any[]) {
+    let script = `return RefHelper.OptValue(${this.expression}, '${name}'`;
+    for (const arg of args) {
+      script += ', ' + escapeValue(arg);
+    }
+    script += ')';
+    return await this.evaluate(script);
+  }
+
   invokeMethod(methodName: string, ...args: any[]): JSResponseReader {
     let script = `return ${this.expression}.${methodName}(`;
     let first = true;

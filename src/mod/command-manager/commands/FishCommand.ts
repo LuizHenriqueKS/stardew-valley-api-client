@@ -15,7 +15,7 @@ class FishCommand implements Command {
     try {
       const till = args.commandArgs.length === 0 ? undefined : parseInt(args.commandArgs[0]);
       await this.validate(args);
-      await args.player.setCurrentItemByTypeName('FishingRod').next();
+      await args.player.setCurrentItemByTypeName('FishingRod');
       await sleep(100);
       if (till) {
         await this.fishMultipleFishes(args, till, true);
@@ -24,6 +24,8 @@ class FishCommand implements Command {
       }
     } catch (e) {
       await defaultHandleException(args, e);
+    } finally {
+      await args.player.freeInputs();
     }
   }
 
@@ -32,38 +34,34 @@ class FishCommand implements Command {
     while (timeOfDay < till) {
       await this.validate(args);
       if (first) {
-        args.sendInfo('Iniciando pesca...');
+        await args.sendInfo('Iniciando pesca...');
       } else {
-        args.sendInfo('Retomando pesca...');
+        await args.sendInfo('Retomando pesca...');
       }
-      const reader = args.player.fish();
-      await reader.next();
-      const response = await reader.next();
-      if (response.result.finished) {
-        await args.player.pressLeftButton();
+      const result = await args.player.fish();
+      if (result.finished) {
+        await args.player.clickLeftButton();
         while (await args.player.currentTool.getFishCaught()) {
           await sleep(1);
         }
         first = false;
       } else {
-        args.sendError('Pesca cancelada');
+        await args.sendError('Pesca cancelada');
         return;
       }
       timeOfDay = await args.client.bridge.game1.getTimeOfDay();
     }
-    args.sendInfo('Atingiu o tempo limite de pesca');
+    await args.sendInfo('Atingiu o tempo limite de pesca');
   }
 
   async singleFish(args: CommandArgs) {
     await this.validate(args);
-    args.sendInfo('Iniciando pesca...');
-    const reader = args.player.fish();
-    await reader.next();
-    const response = await reader.next();
-    if (response.result.finished) {
-      args.sendInfo('Pesca concluída');
+    await args.sendInfo('Iniciando pesca...');
+    const result = await args.player.fish();
+    if (result.finished) {
+      await args.sendInfo('Pesca concluída');
     } else {
-      args.sendError('Pesca cancelada');
+      await args.sendError('Pesca cancelada');
     }
   }
 

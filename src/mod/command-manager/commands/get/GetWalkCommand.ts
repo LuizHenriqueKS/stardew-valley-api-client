@@ -18,7 +18,7 @@ class GetWalkCommand implements Command {
       const walkingPath = await args.player.findWalkingPathTo(endPoint);
       console.log(walkingPath.path);
       for (const tl of walkingPath.path) {
-        await args.sendInfo(`${tl.location} (X: ${tl.x}, Y: ${tl.y})`).next();
+        await args.sendInfo(`${tl.location} (X: ${tl.x}, Y: ${tl.y})`);
       }
       if (walkingPath.path.length === 0) {
         args.sendError('Rota não encontrada');

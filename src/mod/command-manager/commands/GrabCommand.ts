@@ -34,14 +34,13 @@ class GrabCommand implements Command {
           const walkingPath = await args.player.findWalkingPathTo(endPoint, 1);
           args.sendInfo(`Indo até ${obj.displayName}...`);
           await walkingPath.walk();
-          await args.client.bridge.game1.input.simulateMousePositionAtTile(endPoint.x, endPoint.y).next();
+          await args.client.bridge.game1.input.simulateMousePositionAtTile(endPoint.x, endPoint.y);
           if (obj.name === 'Artifact Spot') {
-            await args.player.setCurrentItemByTypeName('Hoe').next();
+            await args.player.setCurrentItemByTypeName('Hoe');
           }
-          await args.client.bridge.game1.input.pressLeftButton();
+          await args.client.bridge.game1.input.clickLeftButton();
           if (obj.name === 'Artifact Spot') {
-            const walkingPath = await args.player.findWalkingPathTo(endPoint, 0);
-            await walkingPath.walk();
+            await args.player.walkTo(endPoint);
           }
         } catch (e) {
           if (!(e instanceof WalkingPathNotFoundException)) {
@@ -51,6 +50,8 @@ class GrabCommand implements Command {
       }
     } catch (e) {
       await defaultHandleException(args, e);
+    } finally {
+      await args.player.freeInputs();
     }
   }
 }

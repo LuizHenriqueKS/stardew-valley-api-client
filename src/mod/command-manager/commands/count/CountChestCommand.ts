@@ -14,7 +14,7 @@ class CountChestCommand implements Command {
 
   async execute(args: CommandArgs): Promise<void> {
     try {
-      await args.sendInfo('Contando itens de baú...').next();
+      await args.sendInfo('Contando itens de baú...');
       const location = await defaultParseNameLocation(args, 0);
       const lister = new ChestItemInfoDao(args.client);
       lister.location = location;

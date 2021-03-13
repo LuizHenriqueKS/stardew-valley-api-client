@@ -7,7 +7,6 @@ import path from 'path';
 import fs from 'fs';
 import moment from 'moment';
 import Keys from '@/src/api/enums/Keys';
-import JSResponseReader from '@/src/api/core/JSResponseReader';
 import autoCommand from './commands/AutoCommand';
 
 class CommandManager {
@@ -44,7 +43,7 @@ class CommandManager {
         autoCommand.canceled = true;
         this.sendInfo('Ação atual cancelada');
       } else if (args.button === Keys.VK_R) {
-        this.#client.bridge.game1.input.pressRightButton().then();
+        this.#client.bridge.game1.input.clickRightButton().then();
       }
     });
     this.#client.bridge.game1.chatBox.addInfoMessage('APIClient conectado');
@@ -63,16 +62,16 @@ class CommandManager {
     }
   }
 
-  sendInfo(message: string): JSResponseReader {
+  async sendInfo(message: string) {
     const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
     console.log(`[${datetime}] ApiBot: ${message}`);
-    return this.client.bridge.game1.chatBox.addInfoMessage(message);
+    await this.client.bridge.game1.chatBox.addInfoMessage(message);
   }
 
-  sendError(message: string): JSResponseReader {
+  async sendError(message: string) {
     const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
     console.error(`[${datetime}] ApiBot: ${message}`);
-    return this.client.bridge.game1.chatBox.addErrorMessage(message);
+    await this.client.bridge.game1.chatBox.addErrorMessage(message);
   }
 
   private async loadCommands() {

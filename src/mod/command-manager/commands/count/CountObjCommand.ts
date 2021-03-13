@@ -14,7 +14,7 @@ class CountObjCommand implements Command {
 
   async execute(args: CommandArgs): Promise<void> {
     try {
-      await args.sendInfo('Contando objetos...').next();
+      await args.sendInfo('Contando objetos...');
       const location = await defaultParseNameLocation(args, 0);
       const lister = new ObjectInfoDao(args.client);
       lister.location = location;

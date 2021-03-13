@@ -1,5 +1,4 @@
 import APIClient from '../APIClient';
-import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 import Character from './Character';
@@ -17,16 +16,16 @@ class Game1 extends Proxy<Game1> {
     return new Game1(ref);
   }
 
-  async getUniqueIDForThisGame(): Promise<number> {
-    return await this.ref.getPropertyValue('uniqueIDForThisGame');
-  }
-
   async getTimeOfDay(): Promise<number> {
     return await this.ref.getPropertyValue('timeOfDay');
   }
 
-  setUniqueIDForThisGame(uniqueIDForThisGame: number): JSResponseReader {
-    return this.ref.setPropertyValue('uniqueIDForThisGame', uniqueIDForThisGame);
+  async getUniqueIDForThisGame(): Promise<number> {
+    return await this.ref.getPropertyValue('uniqueIDForThisGame');
+  }
+
+  async setUniqueIDForThisGame(uniqueIDForThisGame: number) {
+    await this.ref.setPropertyValue('uniqueIDForThisGame', uniqueIDForThisGame).next();
   }
 
   getCharacterFromName(name: string): Character {
@@ -41,20 +40,20 @@ class Game1 extends Proxy<Game1> {
     return await this.ref.invokeMethodResult('pressUseToolButton');
   }
 
-  showGlobalMessage(message: string) {
-    this.ref.invokeMethod('showGlobalMessage', message);
+  async showGlobalMessage(message: string) {
+    await this.ref.invokeMethod('showGlobalMessage', message).next();
   }
 
-  showRedMessage(message: string) {
-    this.ref.invokeMethod('showRedMessage', message);
+  async showRedMessage(message: string) {
+    await this.ref.invokeMethod('showRedMessage', message).next();
   }
 
   async getMouseCursorTransparency(): Promise<number> {
     return await this.ref.getPropertyValue('mouseCursorTransparency');
   }
 
-  setMouseCursorTransparency(mouseCursorTransparency: number): void {
-    this.ref.setPropertyValue('mouseCursorTransparency', mouseCursorTransparency);
+  async setMouseCursorTransparency(mouseCursorTransparency: number) {
+    await this.ref.setPropertyValue('mouseCursorTransparency', mouseCursorTransparency).next();
   }
 
   get player(): Farmer {

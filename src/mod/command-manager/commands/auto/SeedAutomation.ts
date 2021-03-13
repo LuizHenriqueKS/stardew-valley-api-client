@@ -19,7 +19,7 @@ class DigAutomation implements Automation {
   async execute(args: AutomationArgs): Promise<void> {
     const seeds = await this.getSeeds(args);
     if (seeds) {
-      await args.player.setCurrentItemByName(seeds.name).next();
+      await args.player.setCurrentItemByName(seeds.name);
     }
     await args.toolTo(args.tileLocation);
     await args.client.bridge.game1.input.pressLeftButton();

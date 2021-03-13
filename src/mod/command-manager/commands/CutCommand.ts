@@ -19,7 +19,7 @@ class CutCommand implements Command {
     } catch (e) {
       await defaultHandleException(args, e);
     } finally {
-      await args.player.releaseInputs();
+      await args.player.freeInputs();
     }
   }
 
@@ -31,7 +31,7 @@ class CutCommand implements Command {
 
   async cutTree(args: CommandArgs) {
     await this.validate(args);
-    await args.player.setCurrentItemByTypeName('Axe').next();
+    await args.player.setCurrentItemByTypeName('Axe');
     const toolTileLocation = await args.player.nextPositionTile();
     args.sendInfo(`Cortando a árvore em ${toolTileLocation.x}, ${toolTileLocation.y}...`);
     while (true) {
@@ -41,7 +41,7 @@ class CutCommand implements Command {
         await args.player.pressLeftButton();
         break;
       } else if (tree && tree.health > 0) {
-        await args.player.pressLeftButton(false);
+        await args.player.pressLeftButton();
       } else {
         await args.player.releaseLeftButton();
         break;

@@ -1,5 +1,4 @@
 import APIClient from '@/src/api/APIClient';
-import JSResponseReader from '@/src/api/core/JSResponseReader';
 import ChatMessageEvent from '@/src/api/event/ChatMessageEvent';
 import Farmer from '@/src/api/proxy/Farmer';
 import CommandManager from '../CommandManager';
@@ -18,16 +17,16 @@ class CommandArgs {
   commandArgsText!: string;
   valid!: boolean;
 
-  sendInfo(message: string): JSResponseReader {
+  async sendInfo(message: string) {
     const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
     console.log(`[${datetime}] ApiBot: ${message}`);
-    return this.client.bridge.game1.chatBox.addInfoMessage(message);
+    await this.client.bridge.game1.chatBox.addInfoMessage(message);
   }
 
-  sendError(message: string): JSResponseReader {
+  async sendError(message: string) {
     const datetime = moment().format('DD/MM/YYYY HH:mm:ss');
     console.error(`[${datetime}] ApiBot: ${message}`);
-    return this.client.bridge.game1.chatBox.addErrorMessage(message);
+    await this.client.bridge.game1.chatBox.addErrorMessage(message);
   }
 
   async requireStamina() {

@@ -30,20 +30,25 @@ class WalkLocCommand implements Command {
   }
 
   private async walkingTo(args: CommandArgs, endPoint: TileLocation) {
-    args.sendInfo('Calculando rota...');
-    console.log('Calculando rota para: ', endPoint);
-    const walkingPath = await args.player.findWalkingPathTo(endPoint, 999999);
-    if (walkingPath.valid) {
-      args.sendInfo('Indo até o destino...');
-      walkingPath.walk().then(result => {
+    try {
+      await args.sendInfo('Calculando rota...');
+      console.log('Calculando rota para: ', endPoint);
+      const walkingPath = await args.player.findWalkingPathTo(endPoint, 999999);
+      if (walkingPath.valid) {
+        await args.sendInfo('Indo até o destino...');
+        const result = await walkingPath.walk();
         if (result.finished) {
-          args.sendInfo('Chegou no destino');
+          await args.sendInfo('Chegou no destino');
         } else {
-          args.sendError('Rota cancelada');
+          await args.sendError('Rota cancelada');
         }
-      });
-    } else {
-      args.sendError('Não foi possível montar uma rota');
+      } else {
+        await args.sendError('Não foi possível montar uma rota');
+      }
+    } catch (ex) {
+      await args.sendError('Não foi possível montar uma rota');
+    } finally {
+      args.player.freeInputs();
     }
   }
 }

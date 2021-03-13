@@ -1,4 +1,3 @@
-import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 
@@ -7,7 +6,7 @@ class SaveGame extends Proxy<SaveGame> {
     return new SaveGame(ref);
   }
 
-  saveNewGame(): JSResponseReader {
+  async saveNewGame() {
     const script = `
       const tmp = new Date().getTime();
       Game1.uniqueIDForThisGame = tmp;
@@ -15,16 +14,16 @@ class SaveGame extends Proxy<SaveGame> {
       while(x.MoveNext()) {}; 
       return true;
     `;
-    return this.ref.client.jsRunner.run(script);
+    await this.ref.client.jsRunner.run(script).next();
   }
 
-  save(): JSResponseReader {
+  async save() {
     const script = `
       const x = SaveGame.Save(); 
       while(x.MoveNext()) {}; 
       return true;
     `;
-    return this.ref.client.jsRunner.run(script);
+    await this.ref.client.jsRunner.run(script).next();
   }
 }
 

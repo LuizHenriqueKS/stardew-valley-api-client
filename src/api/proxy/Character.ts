@@ -1,14 +1,12 @@
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 import Item from './Item';
-import Tool from './Tool';
 import WalkingPath from './WalkingPath';
 import Position from '../model/Position';
 import TileLocation from '../model/TileLocation';
 import WalkingPathFinder from './WalkingPathFinder';
 import GameLocation from './GameLocation';
 import WalkingPathNotFoundException from '../exception/WalkingPathNotFoundException';
-import ActionCanceledException from '../exception/ActionCanceledException';
 import ItemInfo from '../model/ItemInfo';
 
 class Character extends Proxy<Character> {
@@ -18,16 +16,14 @@ class Character extends Proxy<Character> {
 
   async findWalkingPathTo(endPoint: TileLocation, distance: number = 0): Promise<WalkingPath> {
     const finder = new WalkingPathFinder(this);
-    const pathResult = await finder.find({
+    const result = await finder.find({
       endPoint,
       distance
     });
-    if (pathResult.finished && (!pathResult.data || pathResult.data.length === 0)) {
+    if (!result.valid) {
       throw new WalkingPathNotFoundException();
-    } else if (pathResult.canceled) {
-      throw new ActionCanceledException();
     }
-    return new WalkingPath(this, pathResult.data);
+    return result;
   }
 
   async listItems(): Promise<Item[]> {
@@ -53,14 +49,6 @@ class Character extends Proxy<Character> {
     `;
     const response = await this.ref.client.jsRunner.run(script).next();
     return response.result;
-  }
-
-  async getCentralizeToolTile(): Promise<boolean> {
-    return await this.ref.getPropertyValue('CentralizeToolTile');
-  }
-
-  setCentralizeToolTile(centralizeToolTile: boolean) {
-    this.ref.setPropertyValue('CentralizeToolTile', centralizeToolTile);
   }
 
   async getPosition(): Promise<Position> {
@@ -114,12 +102,8 @@ class Character extends Proxy<Character> {
     return await this.ref.getPropertyValue('FacingDirection');
   }
 
-  setFacingDirection(facingDirection: number) {
-    this.ref.setPropertyValue('FacingDirection', facingDirection);
-  }
-
-  get currentTool(): Tool {
-    return new Tool(this.ref.getChild('CurrentTool'));
+  async setFacingDirection(facingDirection: number) {
+    await this.ref.setPropertyValue('FacingDirection', facingDirection).next();
   }
 
   get currentLocation(): GameLocation {

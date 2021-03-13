@@ -1,4 +1,3 @@
-import JSResponseReader from '../core/JSResponseReader';
 import Proxy from '../core/Proxy';
 import Ref from '../core/Ref';
 
@@ -7,12 +6,12 @@ class ChatBox extends Proxy<ChatBox> {
     return new ChatBox(ref);
   }
 
-  addInfoMessage(message: string): JSResponseReader {
-    return this.ref.invokeMethod('addInfoMessage', message);
+  async addInfoMessage(message: string) {
+    await this.ref.invokeMethod('addInfoMessage', message).next();
   }
 
-  addErrorMessage(message: string): JSResponseReader {
-    return this.ref.invokeMethod('addErrorMessage', message);
+  async addErrorMessage(message: string) {
+    await this.ref.invokeMethod('addErrorMessage', message).next();
   }
 }
 

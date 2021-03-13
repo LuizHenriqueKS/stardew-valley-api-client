@@ -14,7 +14,7 @@ class WalkTerrainCommand implements Command {
 
   async execute(args: CommandArgs): Promise<void> {
     try {
-      await args.sendInfo('Contando itens...').next();
+      await args.sendInfo('Contando itens...');
       const location = await defaultParseNameLocation(args, 0);
       const lister = new TerrainFeatureInfoDao(args.client);
       lister.location = location;

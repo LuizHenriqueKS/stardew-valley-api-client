@@ -14,7 +14,7 @@ class DigAutomation implements Automation {
   }
 
   async execute(args: AutomationArgs): Promise<void> {
-    await args.player.setCurrentItemByTypeName('Hoe').next();
+    await args.player.setCurrentItemByTypeName('Hoe');
     await args.toolTo(args.tileLocation);
     await args.client.bridge.game1.input.pressLeftButton();
   }

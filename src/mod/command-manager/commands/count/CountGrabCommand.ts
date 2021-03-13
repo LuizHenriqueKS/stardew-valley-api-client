@@ -13,7 +13,7 @@ class WalkGrabCommand implements Command {
 
   async execute(args: CommandArgs): Promise<void> {
     try {
-      await args.sendInfo('Contando itens coletáveis...').next();
+      await args.sendInfo('Contando itens coletáveis...');
       const result = await listGrabbableObjects(args, 0);
       const items: any = {};
       const itemsLocation: any = {};

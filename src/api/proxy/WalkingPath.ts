@@ -11,23 +11,25 @@ class WalkingPath {
   #character: Character;
   #moving: boolean;
   #finished: boolean;
+  #valid: boolean;
 
-  constructor(character: Character, path: TileLocation[]) {
+  constructor(character: Character, path: TileLocation[], valid: boolean) {
     this.#path = path.map(it => this.parseTileLocation(it));
     this.#character = character;
     this.#moving = false;
     this.#finished = false;
+    this.#valid = valid;
   }
 
   cancel() {
     this.#moving = false;
   }
 
-  async walk(eachStep?: (evt: WalkingEvent, path: WalkingPath) => Promise<boolean>): Promise<WalkingEvent> {
+  async walk(eachStep?: (evt: WalkingEvent, path: WalkingPath) => Promise<boolean>, canResetInputs?: boolean): Promise<WalkingEvent> {
     try {
       this.#moving = true;
       this.#finished = false;
-      const reader = this.startWalking();
+      const reader = this.startWalking(canResetInputs);
       let evt: WalkingEvent;
       do {
         evt = (await reader.next()).result;
@@ -52,10 +54,10 @@ class WalkingPath {
     return this.#character.ref.run(script);
   }
 
-  private startWalking(): JSResponseReader {
+  private startWalking(canResetInputs?: boolean): JSResponseReader {
     const path = JSON.stringify(this.#path);
     const escapedPath = jsesc(path);
-    const script = `GameJS.GetWalker(${this.#character.ref.expression}).Walk(request, '${escapedPath}')`;
+    const script = `GameJS.GetWalker(${this.#character.ref.expression}).Walk(request, '${escapedPath}', ${!!canResetInputs})`;
     return this.#character.ref.run(script);
   }
 
@@ -81,7 +83,7 @@ class WalkingPath {
   }
 
   get valid(): boolean {
-    return this.#path.length > 0;
+    return this.#valid && this.path.length > 0;
   }
 
   get path(): TileLocation[] {

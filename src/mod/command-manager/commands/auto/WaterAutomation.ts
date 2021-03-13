@@ -11,7 +11,7 @@ class WaterAutomation implements Automation {
   }
 
   async validateStep(args: AutomationArgs): Promise<void> {
-    await args.player.setCurrentItemByName('Watering Can').next();
+    await args.player.setCurrentItemByName('Watering Can');
     await args.args.requireStamina();
     await this.requireWaterLeft(args);
   }

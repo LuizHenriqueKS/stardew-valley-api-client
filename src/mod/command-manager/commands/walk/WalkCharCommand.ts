@@ -27,29 +27,19 @@ class WalkCharCommand implements Command {
   }
 
   private async walkingTo(args: CommandArgs, charName: string, reroute: boolean, endPoint: TileLocation) {
-    const it = this;
-    args.sendInfo(!reroute ? 'Calculando rota...' : 'Recalculando rota...');
-    console.log('Calculando rota para: ', endPoint);
-    const walkingPath = await args.player.findWalkingPathTo(endPoint, 1);
-    if (walkingPath.valid) {
-      args.sendInfo('Indo até o destino...');
-      walkingPath.walk().then(result => {
-        if (result.finished) {
-          args.client.bridge.game1.getCharacterFromName(charName).getTileLocation().then(charPos => {
-            const x = Math.abs(result.tileLocation.x - charPos.x);
-            const y = Math.abs(result.tileLocation.y - charPos.y);
-            if (x < 2 && y < 2) {
-              args.sendInfo('Chegou no destino');
-            } else {
-              it.walkingTo(args, charName, true, charPos).then();
-            }
-          });
-        } else {
-          args.sendError('Rota cancelada');
-        }
-      });
-    } else {
-      args.sendError('Não foi possível montar uma rota');
+    while (true) {
+      args.sendInfo(!reroute ? 'Calculando rota...' : 'Recalculando rota...');
+      const result = await args.player.walkTo(endPoint, { distance: 1 });
+      const charPos = await args.client.bridge.game1.getCharacterFromName(charName).getTileLocation();
+      const x = Math.abs(result.tileLocation.x - charPos.x);
+      const y = Math.abs(result.tileLocation.y - charPos.y);
+      if (x < 2 && y < 2) {
+        args.sendInfo('Chegou no destino');
+        break;
+      } else {
+        endPoint = charPos;
+        reroute = true;
+      }
     }
   }
 }

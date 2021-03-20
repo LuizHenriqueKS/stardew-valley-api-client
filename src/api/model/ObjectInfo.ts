@@ -1,3 +1,5 @@
+import TileLocation from './TileLocation';
+
 interface ObjectInfo {
   location: string;
   x: number;
@@ -7,6 +9,8 @@ interface ObjectInfo {
   edibility: number;
   type: number;
   category: number;
+
+  getTileLocation(): Promise<TileLocation>;
 }
 
 export default ObjectInfo;

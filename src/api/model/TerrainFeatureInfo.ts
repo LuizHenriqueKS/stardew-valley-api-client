@@ -1,3 +1,5 @@
+import TileLocation from './TileLocation';
+
 interface TerrainFeatureInfo {
 
   typeName: string;
@@ -7,6 +9,7 @@ interface TerrainFeatureInfo {
   watered: boolean;
   health: number;
 
+  getTileLocation(): Promise<TileLocation>;
 }
 
 export default TerrainFeatureInfo;

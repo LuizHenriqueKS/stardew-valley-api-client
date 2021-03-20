@@ -15,7 +15,7 @@ class WalkGrabCommand implements Command {
     try {
       await args.sendInfo('Contando itens coletáveis...');
       const result = await listGrabbableObjects(args, 0);
-      const items: any = {};
+      /* const items: any = {};
       const itemsLocation: any = {};
       for (const obj of result) {
         const name = `${obj.displayName}(${obj.name})`;
@@ -30,7 +30,19 @@ class WalkGrabCommand implements Command {
       for (const key of Object.keys(items)) {
         const address = JSON.stringify(Object.keys(itemsLocation[key])).split('"').join('');
         args.sendInfo(`${key} ${address}: ${items[key]}`);
+      } */
+      const locations: any = {};
+      for (const obj of result) {
+        if (locations[obj.location]) {
+          locations[obj.location]++;
+        } else {
+          locations[obj.location] = 1;
+        }
       }
+      for (const key of Object.keys(locations)) {
+        args.sendInfo(`${key}: ${locations[key]}`);
+      }
+
       args.sendInfo(`Total itens encontrados: ${result.length}`);
       console.log(result);
     } catch (e) {

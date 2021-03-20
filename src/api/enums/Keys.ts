@@ -1,6 +1,7 @@
 export default {
   VK_P: 80,
   VK_I: 73,
+  VK_L: 76,
   VK_O: 79,
   VK_K: 75,
   VK_G: 71,

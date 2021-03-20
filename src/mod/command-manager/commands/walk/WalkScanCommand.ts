@@ -41,7 +41,7 @@ class WalkScanCommand implements Command {
       lastEvent = await reader.next();
       const result = lastEvent.result;
       if (result && result.currentProgress) {
-        await args.sendInfo(`Progresso do escaneamento ${result.currentProgress}/${result.maxProgress}...`);
+        // await args.sendInfo(`Progresso do escaneamento ${result.currentProgress}/${result.maxProgress}...`);
       }
     } while (lastEvent.type === ResponseType.PROGRESS);
     args.sendInfo('Escaneamento concluído.');

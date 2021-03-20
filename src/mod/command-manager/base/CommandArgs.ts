@@ -6,6 +6,7 @@ import moment from 'moment';
 import InsufficientStaminaException from '../exception/InsufficientStaminaException';
 import FullInventoryException from '../exception/FullInventoryException';
 import ToolNotFoundException from '../exception/ToolNotFoundException';
+import ItemNotFoundException from '../exception/ItemNotFoundException';
 
 class CommandArgs {
   event?: ChatMessageEvent;
@@ -47,6 +48,14 @@ class CommandArgs {
     const byTypeName = await this.player.hasItemByTypeName(name);
     if (!byName && !byTypeName) {
       throw new ToolNotFoundException(name);
+    }
+  }
+
+  async requireItem(name: string) {
+    const byName = await this.player.hasItemByName(name);
+    const byTypeName = await this.player.hasItemByTypeName(name);
+    if (!byName && !byTypeName) {
+      throw new ItemNotFoundException(name);
     }
   }
 

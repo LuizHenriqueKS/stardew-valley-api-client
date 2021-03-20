@@ -16,7 +16,7 @@ class CountObjCommand implements Command {
     try {
       await args.sendInfo('Contando objetos...');
       const location = await defaultParseNameLocation(args, 0);
-      const lister = new ObjectInfoDao(args.client);
+      const lister = new ObjectInfoDao(args.player);
       lister.location = location;
       lister.acceptNames = args.commandArgs.length > 1 ? [args.commandArgs[1]] : [];
       const result = await lister.list();

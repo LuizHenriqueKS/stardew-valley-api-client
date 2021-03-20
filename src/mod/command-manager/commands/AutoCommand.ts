@@ -1,11 +1,13 @@
 import TileLocation from '@/src/api/model/TileLocation';
+import fillGetTileLocation from '@/src/api/util/fillGetTileLocation';
+import Localizable from '@/src/api/util/Localizable';
+import ProximityIterator from '@/src/api/util/ProximityIterator';
 import fs from 'fs';
 import path from 'path';
 import Automation from '../base/Automation';
 import AutomationArgs from '../base/AutomationArgs';
 import Command from '../base/Command';
 import CommandArgs from '../base/CommandArgs';
-import InvalidArgumentException from '../exception/InvalidArgumentException';
 import InvalidArgumentsException from '../exception/InvalidArgumentsException';
 import defaultCanExecute from '../util/defaultCanExecute';
 import defaultHandleException from '../util/defaultHandleException';
@@ -28,15 +30,21 @@ class AutoCommand implements Command {
   async execute(args: CommandArgs): Promise<void> {
     try {
       this.canceled = false;
+      await args.sendInfo('Iniciando automações...');
       const localAutomations = this.listAutomationsByArgs(args);
       await this.startValidations(localAutomations, args);
-      const tilesLocations = await this.listTilesLocations(args);
-      for (const tileLocation of tilesLocations) {
-        for (const automation of localAutomations) {
+      const tilesLocations = await this.listTilesLocations(args, localAutomations);
+      await this.removeDuplicatedTileLocations(tilesLocations);
+      for (const automation of localAutomations) {
+        const iterator = new ProximityIterator(args.player.getTileLocation(), tilesLocations);
+        while (iterator.hasNext()) {
           if (!this.canceled) {
-            const automationArgs = this.parseAutomationArgs(args, tileLocation);
-            await automation.validateStep(automationArgs);
-            await automation.execute(automationArgs);
+            const tileLocation = await iterator.next();
+            const automationArgs = this.parseAutomationArgs(args, await tileLocation.getTileLocation());
+            if (await automation.canExecute(automationArgs)) {
+              await automation.validateStep(automationArgs);
+              await automation.execute(automationArgs);
+            }
           }
         }
       }
@@ -60,10 +68,12 @@ class AutoCommand implements Command {
 
   private listAutomationsByArgs(args: CommandArgs): Automation[] {
     const result = [];
-    const locationNames = [...args.commandArgs].slice(1).map(s => s.toLocaleLowerCase());
-    for (const automation of this.automations) {
-      if (locationNames.includes(automation.name.toLocaleLowerCase())) {
-        result.push(automation);
+    const automationNames = [...args.commandArgs].slice(1).map(s => s.toLocaleLowerCase());
+    for (const automationName of automationNames) {
+      for (const automation of this.automations) {
+        if (automationName === (automation.name.toLocaleLowerCase())) {
+          result.push(automation);
+        }
       }
     }
     return result;
@@ -75,7 +85,7 @@ class AutoCommand implements Command {
     }
   }
 
-  private async listTilesLocations(args: CommandArgs): Promise<TileLocation[]> {
+  private async listTilesLocations(args: CommandArgs, automations: Automation[]): Promise<Localizable[]> {
     if (args.commandArgs.length === 0) {
       throw new InvalidArgumentsException();
     }
@@ -91,9 +101,25 @@ class AutoCommand implements Command {
           }
         }
       }
-      return result;
     } else {
-      throw new InvalidArgumentException(arg0);
+      for (const automation of automations) {
+        result.push(...await automation.list(args));
+      }
+    }
+    result.forEach((r: any) => fillGetTileLocation(r));
+    const tmp: any = result;
+    return tmp;
+  }
+
+  private async removeDuplicatedTileLocations(tileLocations: Localizable[]) {
+    for (let i = 0; i < tileLocations.length; i++) {
+      for (let j = tileLocations.length - 1; j > i; j--) {
+        const a = await tileLocations[i].getTileLocation();
+        const b = await tileLocations[j].getTileLocation();
+        if (a.location === b.location && a.x === b.x && a.y === b.y) {
+          tileLocations.splice(j, 1);
+        }
+      }
     }
   }
 

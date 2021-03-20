@@ -1,8 +1,10 @@
-import JSResponseReader from '../core/JSResponseReader';
 import FishingEvent from '../event/FishingEvent';
 import WalkingEvent from '../event/WalkingEvent';
+import ActionCanceledException from '../exception/ActionCanceledException';
+import WalkingPathNotFoundException from '../exception/WalkingPathNotFoundException';
 import TileLocation from '../model/TileLocation';
 import WalkOptions from '../model/WalkOptions';
+import sleep from '../util/sleep';
 import Character from './Character';
 import Item from './Item';
 import Tool from './Tool';
@@ -73,19 +75,71 @@ class Farmer extends Character {
       return false;
     `;
     await this.ref.client.jsRunner.run(script).next();
+    await sleep(100);
   }
 
   async beginUsingTool() {
-    await this.ref.invokeMethod('BeginUsingTool');
+    await this.ref.invokeMethod('BeginUsingTool').next();
   }
 
   async endUsingTool() {
-    await this.ref.invokeMethod('EndUsingTool');
+    await this.ref.invokeMethod('EndUsingTool').next();
   }
 
   async walkTo(tileLocation: TileLocation, options?: WalkOptions): Promise<WalkingEvent> {
-    const walkingPath = await this.findWalkingPathTo(tileLocation, options?.distance);
-    return walkingPath.walk(undefined, options?.canResetInputs);
+    const script = `
+      const startPoint = new TileLocationModel(${this.ref.expression});
+      const endPoint = new TileLocationModel('${tileLocation.location}', ${tileLocation.x}, ${tileLocation.y});
+      const distance = ${options?.distance || 0};
+      const walkingPath = WalkingPathFinder.Find(${this.ref.expression}, startPoint, endPoint, distance);
+      if (walkingPath==null) return {walkingPathNotFound:true};
+      GameJS.GetWalker(${this.ref.expression}).Walk(request, walkingPath.TileLocationList, ${options?.canFreeInputs || false});
+      return { started: true };
+    `;
+    const reader = this.ref.run(script);
+    while (true) {
+      const response = await reader.next();
+      const evt = response.result;
+      if (evt.finished) {
+        return evt;
+      } else if (evt.canceled) {
+        throw new ActionCanceledException();
+      } else if (evt.walkingPathNotFound) {
+        throw new WalkingPathNotFoundException();
+      }
+    }
+  }
+
+  async toolTo(endPoint: TileLocation) {
+    const charPos = await this.getTileLocation();
+    if (!this.isToolTileOn(charPos, endPoint)) {
+      await this.tryWalkToolTo(endPoint);
+      await this.pinMousePositionAtTile(endPoint.x, endPoint.y);
+    }
+  }
+
+  private isToolTileOn(a: TileLocation, b: TileLocation): boolean {
+    return a.x - 1 < b.x && b.x < a.x + 1 && a.y - 1 < b.y && b.y + 1 < a.y + 1;
+  }
+
+  private async tryWalkToolTo(tileLocation: TileLocation) {
+    for (let x = tileLocation.x - 1; x <= tileLocation.x + 1; x++) {
+      for (let y = tileLocation.y - 1; y <= tileLocation.y + 1; y++) {
+        if (tileLocation.x !== x || tileLocation.y !== y) {
+          if (await this.ref.client.bridge.game1.currentLocation.isTileLocationOpen(x, y)) {
+            try {
+              const neighbor = { x, y, location: tileLocation.location };
+              await this.walkTo(neighbor);
+              break;
+            } catch (e) {
+              if (!(e instanceof WalkingPathNotFoundException)) {
+                throw e;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   async pressLeftButton() {

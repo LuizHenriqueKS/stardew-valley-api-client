@@ -1,4 +1,6 @@
+import CropInfoDao from '@/src/api/dao/CropInfoDao';
 import ItemInfo from '@/src/api/model/ItemInfo';
+import TileLocation from '@/src/api/model/TileLocation';
 import Automation from '../../base/Automation';
 import AutomationArgs from '../../base/AutomationArgs';
 import CommandArgs from '../../base/CommandArgs';
@@ -21,8 +23,18 @@ class DigAutomation implements Automation {
     if (seeds) {
       await args.player.setCurrentItemByName(seeds.name);
     }
-    await args.toolTo(args.tileLocation);
-    await args.client.bridge.game1.input.pressLeftButton();
+    await args.player.toolTo(args.tileLocation);
+    await args.client.bridge.game1.input.clickLeftButton();
+  }
+
+  async list(args: CommandArgs): Promise<TileLocation[]> {
+    return [];
+  }
+
+  async canExecute(args: AutomationArgs): Promise<boolean> {
+    const dao = new CropInfoDao(args.player);
+    const crop = await dao.get(args.tileLocation);
+    return !crop;
   }
 
   private async getSeeds(args: AutomationArgs): Promise<ItemInfo | undefined> {

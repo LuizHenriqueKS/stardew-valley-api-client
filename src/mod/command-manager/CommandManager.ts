@@ -43,7 +43,11 @@ class CommandManager {
         autoCommand.canceled = true;
         this.sendInfo('Ação atual cancelada');
       } else if (args.button === Keys.VK_R) {
-        this.#client.bridge.game1.input.clickRightButton().then();
+        this.simulateMessage('!grab here');
+      } else if (args.button === Keys.VK_P) {
+        this.simulateMessage('!fish 9999');
+      } else if (args.button === Keys.VK_L) {
+        this.simulateMessage('!count grab available');
       }
     });
     this.#client.bridge.game1.chatBox.addInfoMessage('APIClient conectado');
@@ -60,6 +64,17 @@ class CommandManager {
         });
       }
     }
+  }
+
+  async simulateMessage(text: string) {
+    const message: ChatMessageEvent = {
+      chatKind: 0,
+      language: 'pt-BR',
+      message: text,
+      sourceFarmerName: await this.#client.bridge.game1.player.getName(),
+      sourceFarmer: await this.#client.bridge.game1.player.getUniqueMultiplayerID()
+    };
+    this.processMessage(message);
   }
 
   async sendInfo(message: string) {

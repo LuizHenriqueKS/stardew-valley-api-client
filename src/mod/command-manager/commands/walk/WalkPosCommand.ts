@@ -15,20 +15,12 @@ class WalkPosCommand implements Command {
     try {
       const endPoint = await defaultParseTileLocation(args);
       const distance = this.parseDistance(args);
-      args.sendInfo('Calculando rota...');
-      console.log('Calculando rota para: ', endPoint);
-      const walkingPath = await args.player.findWalkingPathTo(endPoint, distance);
-      if (walkingPath.valid) {
-        args.sendInfo('Indo até o destino...');
-        walkingPath.walk().then(result => {
-          if (result.finished) {
-            args.sendInfo('Chegou no destino');
-          } else {
-            args.sendError('Rota cancelada');
-          }
-        });
+      await args.sendInfo('Indo até o destino...');
+      const result = await args.player.walkTo(endPoint, { distance });
+      if (result.finished) {
+        args.sendInfo('Chegou no destino');
       } else {
-        args.sendError('Não foi possível montar uma rota');
+        args.sendError('Não foi possível chegar no destino');
       }
     } catch (e) {
       await defaultHandleException(args, e);

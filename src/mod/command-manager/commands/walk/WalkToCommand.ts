@@ -30,25 +30,16 @@ class WalkToCommand implements Command {
       }
     } catch (e) {
       await defaultHandleException(args, e);
+    } finally {
+      await args.player.freeInputs();
     }
   }
 
   private async walkingTo(args: CommandArgs, endPoint: TileLocation) {
     args.sendInfo('Calculando rota...');
     console.log('Calculando rota para: ', endPoint);
-    const walkingPath = await args.player.findWalkingPathTo(endPoint);
-    if (walkingPath.valid) {
-      args.sendInfo('Indo até o destino...');
-      walkingPath.walk().then(result => {
-        if (result.finished) {
-          args.sendInfo('Chegou no destino');
-        } else {
-          args.sendError('Rota cancelada');
-        }
-      });
-    } else {
-      args.sendError('Não foi possível montar uma rota');
-    }
+    await args.player.walkTo(endPoint);
+    await args.sendInfo('Chegou no destino');
   }
 }
 

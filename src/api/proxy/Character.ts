@@ -51,6 +51,14 @@ class Character extends Proxy<Character> {
     return response.result;
   }
 
+  async getName(): Promise<string> {
+    return this.ref.getPropertyValue('Name');
+  }
+
+  async getUniqueMultiplayerID(): Promise<number> {
+    return this.ref.getPropertyValue('UniqueMultiplayerID');
+  }
+
   async getPosition(): Promise<Position> {
     const position = `${this.ref.expression}.Position`;
     const location = `${this.ref.expression}.currentLocation.Name`;

@@ -1,6 +1,6 @@
 interface WalkOptions {
   distance?: number;
-  canResetInputs?: boolean;
+  canFreeInputs?: boolean;
 }
 
 export default WalkOptions;

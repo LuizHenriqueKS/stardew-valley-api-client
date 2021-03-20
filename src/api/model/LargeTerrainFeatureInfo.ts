@@ -1,17 +1,15 @@
 import TileLocation from './TileLocation';
 
-interface CropInfo {
+interface LargeTerrainFeatureInfo {
 
-  name: string;
-  displayName: string;
+  typeName: string;
   x: number;
   y: number;
   location: string;
+  health: number;
   canHarvest: boolean;
-  watered: boolean;
-  dead: boolean;
 
   getTileLocation(): Promise<TileLocation>;
 }
 
-export default CropInfo;
+export default LargeTerrainFeatureInfo;

@@ -1,22 +1,26 @@
-import APIClient from '../APIClient';
 import ObjectInfo from '../model/ObjectInfo';
 import TileLocation from '../model/TileLocation';
+import Character from '../proxy/Character';
+import fillGetTileLocation from '../util/fillGetTileLocation';
 
 class ObjectInfoDao {
-  #client: APIClient;
+  character: Character;
   location: string | undefined;
+  available: boolean;
   acceptNames: string[];
   rejectNames: string[];
   rejectTypes: string[];
 
-  constructor(client: APIClient) {
-    this.#client = client;
+  constructor(character: Character) {
+    this.character = character;
     this.acceptNames = [];
     this.rejectNames = [];
     this.rejectTypes = [];
+    this.available = false;
   }
 
   async list(): Promise<ObjectInfo[]> {
+    const currentTileLocation = await this.character.getTileLocation();
     const script = `
         const locations = ${this.getLocationListScript()};
         const acceptNames = ${JSON.stringify(this.acceptNames)};
@@ -34,13 +38,17 @@ class ObjectInfoDao {
             if ( rejectTypes.length !==0 && rejectTypes.includes(obj.Type)) {
               continue;
             }
+            if ( ${this.available} && !GameJS.GetPathMap().HasWalkingPath('${currentTileLocation.location}', location.Name) ){
+              continue;
+            }
             const model = { location: location.Name, x: obj.TileLocation.X, y: obj.TileLocation.Y, name: obj.Name, displayName: obj.DisplayName, edibility: obj.Edibility, type: obj.Type, category: obj.Category };
             result.push(model);
           }
         }
         return result;
       `;
-    const result = await this.#client.jsRunner.evaluate(script);
+    const result = await this.character.ref.client.jsRunner.evaluate(script);
+    result.forEach((r: any) => fillGetTileLocation(r));
     return result;
   }
 
@@ -57,13 +65,16 @@ class ObjectInfoDao {
         }
 
       `;
-    const result: ObjectInfo = await this.#client.jsRunner.evaluate(script);
+    const result: ObjectInfo = await this.character.ref.client.jsRunner.evaluate(script);
+    fillGetTileLocation(result);
     return result.name ? result : undefined;
   }
 
   private getLocationListScript(): string {
     if (this.location && this.location.toLocaleLowerCase() === 'all') {
       return 'Game1.locations';
+    } else if (this.location && this.location.toLocaleLowerCase() === 'here') {
+      return `[${this.character.ref.expression}]`;
     } else if (this.location) {
       return `[Game1.getLocationFromName('${this.location}')]`;
     } else {

@@ -2,10 +2,10 @@ import TileLocation from '@/src/api/model/TileLocation';
 import CommandArgs from '../base/CommandArgs';
 import InvalidArgumentsException from '../exception/InvalidArgumentsException';
 
-async function defaultParseTileLocation(args: CommandArgs): Promise<TileLocation> {
-  const location = await parseLocation(args);
-  const x = parseInt(args.commandArgs[0]);
-  const y = parseInt(args.commandArgs[1]);
+async function defaultParseTileLocation(args: CommandArgs, index: number = 0): Promise<TileLocation> {
+  const location = await parseLocation(args, index);
+  const x = parseInt(args.commandArgs[index]);
+  const y = parseInt(args.commandArgs[index + 1]);
   const result: TileLocation = {
     x,
     y,
@@ -18,8 +18,8 @@ async function defaultParseTileLocation(args: CommandArgs): Promise<TileLocation
   return result;
 }
 
-async function parseLocation(args: CommandArgs): Promise<string> {
-  let location = args.commandArgs.length > 2 ? args.commandArgs[2] : (await args.player.currentLocation.getName());
+async function parseLocation(args: CommandArgs, index: number = 0): Promise<string> {
+  let location = args.commandArgs.length > 2 + index ? args.commandArgs[2 + index] : (await args.player.currentLocation.getName());
   if (location && location.toLocaleLowerCase() === 'here') {
     location = await args.player.currentLocation.getName();
   }

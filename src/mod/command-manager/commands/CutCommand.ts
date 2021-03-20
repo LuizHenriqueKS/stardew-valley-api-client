@@ -34,21 +34,28 @@ class CutCommand implements Command {
     await args.player.setCurrentItemByTypeName('Axe');
     const toolTileLocation = await args.player.nextPositionTile();
     args.sendInfo(`Cortando a árvore em ${toolTileLocation.x}, ${toolTileLocation.y}...`);
+    let treeFound = false;
     while (true) {
       const tree = await new TerrainFeatureInfoDao(args.client).get(toolTileLocation);
       const obj = await new ObjectInfoDao(args.client).get(toolTileLocation);
       if (obj && obj.name === 'Twig') {
         await args.player.pressLeftButton();
+        treeFound = true;
         break;
       } else if (tree && tree.health > 0) {
         await args.player.pressLeftButton();
+        treeFound = true;
       } else {
         await args.player.releaseLeftButton();
         break;
       }
     }
-    await args.player.walkTo(toolTileLocation);
-    args.sendInfo('Árvore cortada');
+    if (treeFound) {
+      await args.player.walkTo(toolTileLocation);
+      args.sendInfo('Árvore cortada');
+    } else {
+      await args.sendInfo('Árvore não encontrada');
+    }
   }
 }
 

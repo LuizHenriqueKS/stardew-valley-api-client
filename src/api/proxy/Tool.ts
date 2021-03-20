@@ -13,6 +13,10 @@ class Tool extends Item {
   async getFishCaught(): Promise<boolean> {
     return await this.ref.optValue('fishCaught');
   }
+
+  async getTreasureCaught(): Promise<boolean> {
+    return await this.ref.optValue('treasureCaught');
+  }
 }
 
 export default Tool;

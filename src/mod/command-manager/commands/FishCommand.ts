@@ -40,9 +40,18 @@ class FishCommand implements Command {
       }
       const result = await args.player.fish();
       if (result.finished) {
-        await args.player.clickLeftButton();
-        while (await args.player.currentTool.getFishCaught()) {
+        let fishCaught = await args.player.currentTool.getFishCaught();
+        let treasureCaught = await args.player.currentTool.getTreasureCaught();
+        if (fishCaught) {
+          await sleep(1000);
+          await args.player.pinMousePosition(0, 0);
+          await args.player.clickLeftButton();
+        }
+        await args.player.freeInputs();
+        while (fishCaught || treasureCaught) {
           await sleep(1);
+          fishCaught = await args.player.currentTool.getFishCaught();
+          treasureCaught = await args.player.currentTool.getTreasureCaught();
         }
         first = false;
       } else {

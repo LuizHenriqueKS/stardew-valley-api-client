@@ -43,7 +43,7 @@ class WalkingPathFinder extends Proxy<WalkingPathFinder> {
     return this.#character.ref.run(script);
   } */
 
-  private tileLocationToRefExpression(tileLocation: TileLocation): EscapedValue {
+  tileLocationToRefExpression(tileLocation: TileLocation): EscapedValue {
     return new EscapedValue(`new TileLocationModel('${tileLocation.location}', ${tileLocation.x}, ${tileLocation.y})`);
   }
 }

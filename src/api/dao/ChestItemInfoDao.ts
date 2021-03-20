@@ -1,5 +1,6 @@
 import APIClient from '../APIClient';
 import ChestItemInfo from '../model/ChestItemInfo';
+import fillGetTileLocation from '../util/fillGetTileLocation';
 
 class ChestItemInfoDao {
   #client: APIClient;
@@ -42,6 +43,7 @@ class ChestItemInfoDao {
         return result;
       `;
     const result = await this.#client.jsRunner.evaluate(script);
+    result.forEach((r: any) => fillGetTileLocation(r));
     return result;
   }
 

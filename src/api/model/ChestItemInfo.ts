@@ -1,3 +1,5 @@
+import TileLocation from './TileLocation';
+
 interface ChestItemInfo {
   location: string;
   x: number;
@@ -6,6 +8,8 @@ interface ChestItemInfo {
   displayName: string;
   index: number;
   stack: number;
+
+  getTileLocation(): Promise<TileLocation>
 }
 
 export default ChestItemInfo;

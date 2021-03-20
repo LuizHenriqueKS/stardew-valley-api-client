@@ -1,5 +1,6 @@
 import WalkingPathNotFoundException from '@/src/api/exception/WalkingPathNotFoundException';
 import TileLocation from '@/src/api/model/TileLocation';
+import ProximityIterator from '@/src/api/util/ProximityIterator';
 import Command from '../base/Command';
 import CommandArgs from '../base/CommandArgs';
 import defaultCanExecute from '../util/defaultCanExecute';
@@ -8,6 +9,12 @@ import listGrabbableObjects from '../util/listGrabbableObject';
 
 class GrabCommand implements Command {
   name: string = 'Grab';
+
+  #lastMsg: number;
+
+  constructor() {
+    this.#lastMsg = new Date().getTime();
+  }
 
   async canExecute(args: CommandArgs): Promise<boolean> {
     return defaultCanExecute(this, args);
@@ -20,25 +27,26 @@ class GrabCommand implements Command {
       if (result.find(obj => obj.name === 'Artifact Spot')) {
         await args.requireTool('Hoe');
       }
+      const iterator = new ProximityIterator(args.player.getTileLocation(), result);
       let i = 0;
-      for (const obj of result) {
+      while (iterator.hasNext()) {
         try {
+          const obj = await iterator.next();
+          const dynObj: any = obj;
           await args.requireInventorySpace();
           i++;
-          args.sendInfo(`Calculando rota até ${obj.displayName} [${i}/${result.length}]...`);
-          const endPoint: TileLocation = {
-            x: obj.x,
-            y: obj.y,
-            location: obj.location
-          };
-          const walkingPath = await args.player.findWalkingPathTo(endPoint, 1);
-          args.sendInfo(`Indo até ${obj.displayName}...`);
-          await walkingPath.walk();
-          await args.client.bridge.game1.input.simulateMousePositionAtTile(endPoint.x, endPoint.y);
+          await this.sendInfo(args, `Indo até ${obj.displayName} [${i}/${result.length}]...`);
+          const endPoint: TileLocation = await obj.getTileLocation();
+          await args.player.walkTo(endPoint, { distance: 1 });
+          await args.player.pinMousePositionAtTile(endPoint.x, endPoint.y);
           if (obj.name === 'Artifact Spot') {
             await args.player.setCurrentItemByTypeName('Hoe');
           }
-          await args.client.bridge.game1.input.clickLeftButton();
+          if (dynObj.typeName && dynObj.typeName === 'Bush') {
+            await args.player.clickRightButton();
+          } else {
+            await args.player.clickLeftButton();
+          }
           if (obj.name === 'Artifact Spot') {
             await args.player.walkTo(endPoint);
           }
@@ -48,11 +56,19 @@ class GrabCommand implements Command {
           }
         }
       }
+      await args.sendInfo('Pronto');
     } catch (e) {
       await defaultHandleException(args, e);
     } finally {
       await args.player.freeInputs();
     }
+  }
+
+  async sendInfo(args: CommandArgs, message: string): Promise<void> {
+    // if ((new Date().getTime() - this.#lastMsg) > 30000) {
+    await args.sendInfo(message);
+    // this.#lastMsg = new Date().getTime();
+    //  }
   }
 }
 

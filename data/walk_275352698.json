@@ -1,0 +1,12 @@
+{
+  "pesca": {
+    "x": 11,
+    "y": 28,
+    "location": "Beach"
+  },
+  "comunidade": {
+    "x": 32,
+    "y": 19,
+    "location": "CommunityCenter"
+  }
+}
